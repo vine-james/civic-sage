@@ -197,7 +197,7 @@ if mp_name != None:
                     "Message Type": [message["role"] for message in st.session_state.messages],
                     "Message Content": [message["message"]["content"] for message in st.session_state.messages],
                 })
-                df_conversation.to_csv(constants.PATH_CONVERSATIONS / f"{previous_mp.lower().replace(" ", "-")}_{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.csv", index=False)
+                df_conversation.to_csv(constants.PATH_CONVERSATIONS / f"{previous_mp.lower().replace(' ', '-')}_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", index=False)
 
         st.session_state.current_selected_mp = mp_name
         st.session_state.messages = []

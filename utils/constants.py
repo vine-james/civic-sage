@@ -13,5 +13,5 @@ load_dotenv()
 
 TOKEN_GITHUB = os.getenv("GITHUB_REPO_TOKEN")
 TOKEN_OPENAI = os.getenv("OPENAI_TOKEN")
-
+PASSWORD_DASHBOARD = os.getenv("DASHBOARD_PASSWORD")
 

@@ -79,7 +79,7 @@ def create_header_bar() -> None:
 def create_sidebar() -> None:
      with st.sidebar:
         # Logo, Title, Version
-        st.image(constants.PATH_IMAGES / "civic-sage-logo.png")
+        # st.image(constants.PATH_IMAGES / "civic-sage-logo.png")
 
         st.markdown(
             f"""
@@ -92,16 +92,13 @@ def create_sidebar() -> None:
         st.divider()
 
         # Public Pages
-        st.subheader("Public")
-        st.page_link("streamlit_app.py", label="Home")
-        st.page_link("pages/search.py", label="Search for an MP")
+        st.subheader("Navigate")
+        st.page_link("streamlit_app.py", label="Home", icon=":material/home:")
+        st.page_link("pages/search.py", label="Search for an MP", icon=":material/search:")
+        st.page_link("pages/dashboard.py", label="Dashboard", icon=":material/view_kanban:")
 
-        st.divider()
-
-        # Private Pages
-        st.subheader("🔒 Private")
-        st.page_link("pages/dashboard.py", label="Dashboard")
-        st.page_link("pages/testing.py", label="[DEV] Testing")
+        # st.subheader("🔒 Private")
+        # st.page_link("pages/testing.py", label="[DEV] Testing")
 
         st.divider()
 
