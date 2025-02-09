@@ -1,7 +1,7 @@
 from openai import OpenAI
 import utils.constants as constants
 
-MODEL = "gpt-4" # Model: Use "gpt-4" for GPT-4o.
+MODEL = "gpt-3.5-turbo" # Model: Use "gpt-4" for GPT-4o.
 
 TEMPERATURE = 1.0 # Temperature: Controls the randomness of the output (e.g., 0.7 for more creative responses, 0 for deterministic).
 MAX_TOKENS = 3000 # Max Tokens: Limits the length of the response.

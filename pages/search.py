@@ -20,6 +20,10 @@ current_selected_mp = None
 if "current_selected_mp" not in st.session_state:
     st.session_state.current_selected_mp = None
 
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 # chat_messages = [
 #     {"role": "ai", "message": {"content": f"Hi there! Feel free to ask me to explain any political information about {mp_name}!"}},
 #     {"role": "user", "message": {"content": "What did they vote for on the assisted dying bill?"}},
@@ -106,7 +110,7 @@ def send_chat_message(message, speak=False):
                 st.write(message["message"]["content"])
 
             if "sources" in message["message"]:
-                with st.expander("🔍 Sources"):
+                with st.expander("Sources", icon=":material/find_in_page:"):
                     st.markdown(message["message"]["sources"], unsafe_allow_html=True)
 
         else:
@@ -120,6 +124,22 @@ def process_chat_history(messages):
 
 
 
+def process_prompt_and_response(prompt):
+    send_chat_message({"role": "user", "message": {"content": prompt}})
+    # st.chat_message("user").markdown(prompt)
+    st.session_state.messages.append({"role": "user", "date": datetime.now().strftime("%d/%m/%Y"), "time": datetime.now().strftime("%H:%M:%S"), "message": {"content": prompt}})
+
+    response = f"Echo: {prompt}"
+    # Display assistant response in chat message container & chat history
+    # st.chat_message("assistant").markdown(response)
+
+    with st.spinner("Retrieving info..."):
+        response = gpt_utils.prompt(prompt)
+        time.sleep(2)
+
+    send_chat_message({"role": "ai", "message": {"content": response}}, speak=True)
+    st.session_state.messages.append({"role": "ai", "date": datetime.now().strftime("%d/%m/%Y"), "time": datetime.now().strftime("%H:%M:%S"), "message": {"content": response}})
+
 
 
 from streamlit_searchbox import st_searchbox
@@ -129,8 +149,7 @@ def search(searchterm: str):
 st.markdown("<p style='line-height: 0; font-size: 15px;'>Search for a Member of Parliament (MP) or Constituency</p>",  unsafe_allow_html=True)
 mp_name = st_searchbox(
     search,
-    placeholder="...",
-    key="my_key",
+    placeholder="Search for an MP",
 )
 
 if mp_name != None:
@@ -159,15 +178,67 @@ if mp_name != None:
                     <p style='font-size: 20px; color: {parties_main_theme[mp_data.Party]};'>{mp_data.Party}</p>
                     """, unsafe_allow_html=True)
         
-        with st.expander(f"Find {mp_name} online"):
+        with st.expander(f"Find {mp_name} online", icon=":material/share:"):
             cols = st.columns([1 for _ in mp_data.Contact], gap="small")
             
             for col, contact_dict in zip(cols, mp_data.Contact.items()):
                 with col:
-                    st.link_button(f"{contact_dict[0]} 🡭", contact_dict[1])
+                    st.link_button(f"{contact_dict[0]} :material/arrow_outward:", contact_dict[1])
 
-        with st.expander(f"See {mp_name}'s political career history"):
-            st.write("-")
+        with st.expander(f"See {mp_name}'s political career history", icon=":material/id_card:"):
+            tab_elections, tab_gov, tab_opposition, tab_committees = st.tabs([":material/how_to_vote: Elections", ":material/account_balance: Gov Posts", ":material/mystery: Opposition Posts", ":material/adaptive_audio_mic: Committees"])
+            cols = st.columns([1, 5])
+            with cols[0]:
+                st.write(":material/radio_button_checked:")
+
+            with cols[1]:
+                st.write("Test<br>Test2")
+            st.markdown("""
+                <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            """, unsafe_allow_html=True)
+
+
+            
+
+            st.markdown(f"""
+                <span><i class="material-icons" style="font-size: 20px; color: {st_utils.THEMES_MAIN};">radio_button_checked</i> <span style='font-size: 18px;'><b>Test</b></span><br><span style='font-size: 14px;'>Tes 2</span></span>
+                <br>
+                <i class="material-icons" style="font-size: 16px; color: {st_utils.THEMES_MAIN};">more_vert</i>
+                <br>
+                <span><i class="material-icons" style="font-size: 16px; color: {st_utils.THEMES_MAIN};">radio_button_unchecked</i> <b>Test</b></span>
+                <br>
+                <i class="material-icons" style="font-size: 16px; color: {st_utils.THEMES_MAIN};">more_vert</i>
+                <br>
+                <span><i class="material-icons" style="font-size: 16px; color: {st_utils.THEMES_MAIN};">radio_button_unchecked</i> <b>Test</b></span>
+            """, unsafe_allow_html=True)
+
+            st.markdown("""
+            <div style="position: relative; width: 200px; padding: 20px;">
+                        
+                <span><i class="material-icons" style="font-size: 16px; color: red;">check</i> <p>Test</p></span>
+                <!-- Timeline Line -->
+                <div style="position: absolute; top: 40px; left: 15px; bottom: 0; width: 3px; background-color: red;"></div>
+
+                <!-- First timeline item -->
+                <div style="display: flex; align-items: center; margin-bottom: 40px; position: relative;">
+                    <div style="width: 30px; height: 30px; border: 3px solid red; border-radius: 50%; background: white; position: absolute; left: 0;"></div>
+                    <div style="margin-left: 50px; color: black; text-shadow: 1px 1px 0px white;">
+                        <div style="font-size: 16px; font-weight: bold;">Text1</div>
+                        <div style="font-size: 14px;">Subtext1</div>
+                    </div>
+                </div>
+
+                <!-- Second timeline item -->
+                <div style="display: flex; align-items: center; margin-bottom: 40px; position: relative;">
+                    <div style="width: 30px; height: 30px; border: 3px solid red; border-radius: 50%; background: white; position: absolute; left: 0;"></div>
+                    <div style="margin-left: 50px; color: black; text-shadow: 1px 1px 0px white;">
+                        <div style="font-size: 16px; font-weight: bold;">Text2</div>
+                        <div style="font-size: 14px;">Subtext2</div>
+                    </div>
+                </div>
+
+            </div>
+            """, unsafe_allow_html=True)
             # with st.expander("Previous Elections"):
             #     st.write("1")
 
@@ -184,28 +255,21 @@ if mp_name != None:
     # if "messages" not in st.session_state:
     print(st.session_state.current_selected_mp, mp_name)
     if st.session_state.current_selected_mp != mp_name:
-        # If a previous conversation (array of messages) existed, save it before resetting.
-        if "messages" in st.session_state:
-            # TODO: Find a better way than layered if conditions
-            if len(st.session_state["messages"]) > 1: 
-                previous_mp = st.session_state.current_selected_mp
-
-                df_conversation = pd.DataFrame({
-                    "MP": [previous_mp] * len(st.session_state.messages),
-                    "Message Date": [message["date"] for message in st.session_state.messages],
-                    "Message Time": [message["time"] for message in st.session_state.messages],
-                    "Message Type": [message["role"] for message in st.session_state.messages],
-                    "Message Content": [message["message"]["content"] for message in st.session_state.messages],
-                })
-                df_conversation.to_csv(constants.PATH_CONVERSATIONS / f"{previous_mp.lower().replace(' ', '-')}_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", index=False)
-
+        st_utils.save_conversation_to_csv()
         st.session_state.current_selected_mp = mp_name
-        st.session_state.messages = []
 
         # Set up intro message
         intro_message = {"role": "ai", "date": datetime.now().strftime("%d/%m/%Y"), "time": datetime.now().strftime("%H:%M:%S"), "message": {"content": f"Hi there! Feel free to ask me to explain any political information about {mp_name}!"}}
         send_chat_message(intro_message, speak=True)
         st.session_state.messages.append(intro_message)
+
+        msg = {"role": "ai",
+         "message": {
+            "content": "Sir Keir Starmer voted 'Aye' (yes) on the Terminally Ill Adults (End of Life) Bill: Second Reading on 29 November 2024. It subsequently passed with 330 (Ayes) to 275 (Noes) [[1]](https://google.com)",
+            "sources": "<a href='https://google.com' style='font-size: 18px'><b>[1]</b></a>: Test bla bla bla",
+            }
+        }
+        send_chat_message(msg, speak=True)
 
     else:
         # Display chat messages from history on app rerun
@@ -217,13 +281,33 @@ if mp_name != None:
     # TODO:
     # display_chat(chat_messages)
 
-
+    if "button_pressed" not in st.session_state:
+        st.session_state["button_pressed"] = False
+        st.session_state["current_prompt"] = None
 
     with bottom():
+
+
         st.markdown(f"""
         <p style='line-height: 0; font-size: 14px; text-align: center; color: #9c9d9f;'>Civic Sage can make mistakes. Always verify important information.</p>
         """, unsafe_allow_html=True)
-        prompt = st.chat_input(f"Enter a question regarding {mp_name}")
+
+        bottom_col_1, bottom_col_2 = st.columns([1, 7])
+
+        with bottom_col_1:
+            with st.popover("", icon=":material/help:", help="Select from a list of sample questions"):
+                suggested_prompts = [f"What is {mp_name}'s recent voting record?", f"What declared payments has {mp_name} received?", f"When was {mp_name} elected?"]
+                button_cols = st.columns([1 for _ in suggested_prompts])
+
+                for i, button_col in enumerate(button_cols):
+                    with button_col:
+                        if st.button(f":material/search: {suggested_prompts[i]}"):
+                            st.session_state["current_prompt"] = suggested_prompts[i]
+                            st.session_state["button_pressed"] = True
+
+
+        with bottom_col_2:
+            prompt = st.chat_input(f"Enter a question regarding {mp_name}")
         
 
 
@@ -239,20 +323,16 @@ if mp_name != None:
     # React to user input
     # if prompt := st.chat_input("What is up?"):
         # Display user message in chat message container & # Add user message to chat history
-        send_chat_message({"role": "user", "message": {"content": prompt}})
-        # st.chat_message("user").markdown(prompt)
-        st.session_state.messages.append({"role": "user", "date": datetime.now().strftime("%d/%m/%Y"), "time": datetime.now().strftime("%H:%M:%S"), "message": {"content": prompt}})
+        process_prompt_and_response(prompt)
 
-        response = f"Echo: {prompt}"
-        # Display assistant response in chat message container & chat history
-        # st.chat_message("assistant").markdown(response)
+    if st.session_state["button_pressed"]:
+        process_prompt_and_response(st.session_state["current_prompt"])
+        st.session_state["current_prompt"] = ""
+        st.session_state["button_pressed"] = False  # Reset after handling
 
-        with st.spinner("Retrieving info..."):
-            response = gpt_utils.prompt(prompt)
-            time.sleep(2)
 
-        send_chat_message({"role": "ai", "message": {"content": response}}, speak=True)
-        st.session_state.messages.append({"role": "ai", "date": datetime.now().strftime("%d/%m/%Y"), "time": datetime.now().strftime("%H:%M:%S"), "message": {"content": response}})
+
+        
 
 
 

@@ -1,9 +1,17 @@
 import streamlit as st
 import requests
+from streamlit_theme import st_theme
+
+
+import pandas as pd
+from datetime import datetime
 
 import utils.constants as constants
 
 THEMES_MAIN = "#3087ff"
+
+THEMES_SELECT_BACKGROUND = "#e3e7ee"
+THEMES_SELECT_ELEMENT = "#1d2345"
 
 """
 
@@ -76,10 +84,26 @@ def create_header_bar() -> None:
         """, unsafe_allow_html=True) 
 
 
+def get_themed_icon(file_path):
+    # Adapt logo path to dark-mode variant dependent on theme mode set by user (minor QoL)
+    # theme = st_theme()
+
+    # # Check if the app is in "dark mode" or "light mode"
+    # print(theme)
+    # if theme["base"] == "dark":
+    #     print(file_path.with_name(file_path.stem + "-white" + file_path.suffix))
+    #     return file_path.with_name(file_path.stem + "-white" + file_path.suffix)
+    
+    return file_path
+
+
 def create_sidebar() -> None:
      with st.sidebar:
         # Logo, Title, Version
-        # st.image(constants.PATH_IMAGES / "civic-sage-logo.png")
+        # st.image(constants.PATH_IMAGES / "civic-sage-logo-text.png", width=160)
+
+        st.image(get_themed_icon(constants.PATH_IMAGES / "civic-sage-logo.png"), width=160)
+        st.logo(constants.PATH_IMAGES / "none.png", icon_image=constants.PATH_IMAGES / "civic-sage-logo.png", size="large")
 
         st.markdown(
             f"""
@@ -117,8 +141,90 @@ def create_page_config(page_name: str) -> None:
     )
 
 
-def create_elements_theming() -> None:
-    return None
+def save_conversation_to_csv() -> None:
+    # If a previous conversation (array of messages) existed, save it before resetting.
+    if "messages" in st.session_state:
+        # TODO: Find a better way than layered if conditions
+        if len(st.session_state["messages"]) > 1: 
+            previous_mp = st.session_state.current_selected_mp
+
+            df_conversation = pd.DataFrame({
+                "MP": [previous_mp] * len(st.session_state.messages),
+                "Message Date": [message["date"] for message in st.session_state.messages],
+                "Message Time": [message["time"] for message in st.session_state.messages],
+                "Message Type": [message["role"] for message in st.session_state.messages],
+                "Message Content": [message["message"]["content"] for message in st.session_state.messages],
+            })
+            df_conversation.to_csv(constants.PATH_CONVERSATIONS / f"{previous_mp.lower().replace(' ', '-')}_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", index=False)
+
+            st.session_state.messages = []
+
+
+def inject_html_styling() -> None:
+    # Inject re-styling theme HTML/CSS
+    st.markdown(
+        """
+        <style>
+
+        /* Regular Button */
+        .stButton > button { 
+            background-color: """ + f"{THEMES_MAIN};" + """
+            color: white; 
+            transition: all .35s ease;
+            border: none;
+        }
+        
+        .stButton > button:hover {
+            background-color: """ + f"{THEMES_SELECT_BACKGROUND};" + """
+            color: """ + f"{THEMES_SELECT_ELEMENT};" + """
+        }
+
+
+        /* Link Button */
+        [data-testid="stBaseLinkButton-secondary"] {
+            background-color: """ + f"{THEMES_MAIN};" + """
+            color: white;
+            transition: all .35s ease;
+            border: none;
+        }
+
+        [data-testid="stBaseLinkButton-secondary"]:hover {
+            background-color: """ + f"{THEMES_SELECT_BACKGROUND};" + """
+            color: """ + f"{THEMES_SELECT_ELEMENT};" + """
+        }
+
+
+        /* Expander */
+        [data-testid="stExpander"] {
+            # background-color: """ + f"{THEMES_MAIN};" + """
+            # color: white;
+            border: 0px solid;
+            border-radius: 8px; /* Make sure the container has rounded corners */
+        }
+
+        [data-testid="stExpander"] details summary {
+            color: white;
+            background-color: """ + f"{THEMES_MAIN};" + """
+            border: 0px solid;
+            border-radius: 8px; /* Make sure the container has rounded corners */
+        }
+
+        [data-testid="stExpanderDetails"] {
+            margin-top: 12px;
+        }
+
+        [data-testid="stExpander"] details:hover summary {
+            color: white;
+        }
+
+        [data-testid="stPopover"] .active {
+            color: white;
+        }
+
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 def create_page_setup(page_name: str) -> None:
@@ -126,8 +232,12 @@ def create_page_setup(page_name: str) -> None:
     create_header_bar()
     create_sidebar()
 
-    # TODO
-    create_elements_theming()
+    inject_html_styling()
+
+    # If navigating away from the search page - save the previous conversation if it exists before its lost.
+    save_conversation_to_csv()
+
+    
 
 
 
