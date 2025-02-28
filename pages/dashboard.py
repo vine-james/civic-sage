@@ -12,6 +12,11 @@ def run():
 
     st.write("https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/")
 
+
+    st.write("First -> Log in to the 'MP side', which MP are we looking for? 2. Pull the data for that MP. 3. Show dashboard for data collected specific to that MP.")
+    st.write("Charts, metrics, plus info reported as wrong by the users")
+    
+
     for file in constants.PATH_CONVERSATIONS.iterdir():
         st.table(pd.read_csv(file))
 

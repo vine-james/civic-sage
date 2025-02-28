@@ -69,6 +69,52 @@ parties_main_theme = {
     "Reform UK": 4,
 }
 
+@st.dialog("Report a mistake in a Civic Sage response")
+def report(message, tree):
+    # st.write("Response:")
+    # st.write(message["content"])
+
+
+    if not st.button("Submit"):
+        st.write("Reported Response:")
+        block_col, reported_response = st.columns([1, 20])
+        with block_col:
+            st.markdown("""
+            <div style="background-color: #808080; width: 40%; height: 1000%;">
+            </div>
+            """, unsafe_allow_html=True)
+        with reported_response:
+            st.caption(message["content"])
+
+        st.divider()
+
+        st.text_area(
+            "Enter any additional comments below:",
+            ""
+        )
+        # if password_input == constants.PASSWORD_DASHBOARD:
+        #     st.session_state.authenticated = True
+        #     st.rerun()
+    else:
+        st.success("**Report submitted successfully**\n\nThank you for your feedback!\nThis information will be assessed by a human reviewer. In the meantime, we have flagged this response within the conversation history to ensure proper conversation clarity.", icon=":material/task_alt:")
+        dismiss_bar = st.progress(0, text=None)
+        time_to_read = 6 # Seconds
+
+        for percent_complete in range(100):
+            time.sleep(time_to_read / 100)
+            dismiss_bar.progress(percent_complete + 1, text=None)
+        time.sleep(1)
+        st.rerun()
+        
+        # else:
+        #     st.error("Password incorrect")
+    
+    # with st.form("my_form"):
+    #     st.write("Inside the form")
+    #     my_number = st.slider('Pick a number', 1, 10)
+    #     my_color = st.selectbox('Pick a color', ['red','orange','green','blue','violet'])
+    #     st.form_submit_button('Submit my picks')
+
 
 
 # pass search function and other options as needed
@@ -110,8 +156,23 @@ def send_chat_message(message, speak=False):
                 st.write(message["message"]["content"])
 
             if "sources" in message["message"]:
-                with st.expander("Sources", icon=":material/find_in_page:"):
-                    st.markdown(message["message"]["sources"], unsafe_allow_html=True)
+                col_1, col_2 = st.columns([5, 1])
+                with col_1:
+                    with st.expander("Sources", icon=":material/find_in_page:"):
+                        st.markdown(message["message"]["sources"], unsafe_allow_html=True)
+
+                with col_2:
+                    st.button("", icon=":material/thumb_down:", help="Spotted a mistake in Civic Sage's response? Click me to report the message.", on_click=report, args=(message["message"], 2))
+        
+
+
+                    
+                
+        
+
+                    
+
+                
 
         else:
             st.write(message["message"]["content"])
@@ -304,6 +365,9 @@ if mp_name != None:
                         if st.button(f":material/search: {suggested_prompts[i]}"):
                             st.session_state["current_prompt"] = suggested_prompts[i]
                             st.session_state["button_pressed"] = True
+
+                # TODO: Reminder of sample prompts could style around
+                st.image(constants.PATH_IMAGES / "temp-to-remind-sample-prompts.png")
 
 
         with bottom_col_2:

@@ -6,9 +6,19 @@ from streamlit_extras.mention import mention
 from streamlit_extras.add_vertical_space import add_vertical_space 
 
 st_utils.create_page_setup(page_name="Home")
+# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-A-1.png"))
+# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-A-2.png"))
 
-st.title("Home")
-st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "civic-sage-logo-text.png"), width=600)
+# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-B-1.png"))
+# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-B-2.png"))
+
+# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-C-1.png"))
+
+st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-D-1.png"))
+st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-D-2.png"))
+st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "civic-sage-banner.png"))
+
+
 
 
 columns = st.columns([1, 1, 2])
