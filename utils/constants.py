@@ -7,6 +7,7 @@ CWD = Path.cwd()
 PATH_FILES = CWD / "files"
 PATH_IMAGES = PATH_FILES / "images"
 PATH_CONVERSATIONS = PATH_FILES / "conversations"
+PATH_PDFS = PATH_FILES / "pdfs"
 
 # Tokens
 load_dotenv()

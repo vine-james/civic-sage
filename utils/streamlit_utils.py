@@ -127,7 +127,7 @@ def create_sidebar() -> None:
         st.divider()
 
         # Dissertation review notice
-        with st.expander("Survey Feedback"):
+        with st.expander("**Survey Feedback**", icon=":material/feedback:"):
             st.info("**REVIEWERS:** Are you testing this artefact as part of a requested survey? Access the [JISC Survey form here](https://app.onlinesurveys.jisc.ac.uk/s/bournemouth/dissertation-response-survey). This is the only acceptable way to provide feedback.")
             st.image(constants.PATH_IMAGES / "survey-qr-code.png")
 

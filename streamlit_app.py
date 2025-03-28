@@ -14,9 +14,10 @@ st_utils.create_page_setup(page_name="Home")
 
 # st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-C-1.png"))
 
-st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-D-1.png"))
-st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-D-2.png"))
+# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-D-1.png"))
+# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-D-2.png"))
 st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "civic-sage-banner.png"))
+st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "civic-sage-banner-2.png"))
 
 
 

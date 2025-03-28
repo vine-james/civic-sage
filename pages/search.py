@@ -76,7 +76,7 @@ def report(message, tree):
 
 
     if not st.button("Submit"):
-        st.write("Reported Response:")
+        st.write(":material/speaker_notes_off: Reported Response:")
         block_col, reported_response = st.columns([1, 20])
         with block_col:
             st.markdown("""
@@ -88,8 +88,12 @@ def report(message, tree):
 
         st.divider()
 
+        # TODO: Make sure when reporting to report the entire conversation in the logs (but only show the message, as we need to know how the conversation got to this point)
+
+        reported_tags = st.pills(":material/label: How would you tag the response error? [Multi-select]", ["Inaccurate information", "Inaccurate sources", "Political bias", "Explanation not understandable", "Other"], selection_mode="multi")
+
         st.text_area(
-            "Enter any additional comments below:",
+            ":material/rate_review: Enter any additional comments below:",
             ""
         )
         # if password_input == constants.PASSWORD_DASHBOARD:
