@@ -10,7 +10,6 @@ import utils.constants as constants
 
 st_utils.create_page_setup(page_name="Search")
 
-st.title("Search for an MP")
 
 from collections import namedtuple
 MP_Data = namedtuple("MP_Data", ["Portrait", "Party", "Constituency", "Tenure", "Contact", "History"])
@@ -24,6 +23,57 @@ if "current_selected_mp" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+
+if "usage_agreement" not in st.session_state:
+    st.session_state.usage_agreement = False
+
+
+@st.dialog("Civic Sage Usage Agreement")
+def usage_agreement():
+
+    # May need to refine these questions or base them off something more concrete.
+    # Q1 and 2 are based on Hansard Society's form, but Q3 is something I just pulled out to match.
+    # Scales are also not backed up by anything academic.
+
+    st.write("**Please rate**: How much, if anything do you feel you know about:")
+
+    select_options = ["Nothing at all", "Not very much", "A fair amount", "A great deal"]
+
+    user_knowledge_politics = st.select_slider("UK Politics", select_options)
+    user_knowledge_parliament = st.select_slider("UK Parliament", select_options)
+    user_knowledge_government = st.select_slider("UK Government", select_options, help="Confused about the difference between 'Parliament' and 'Government'? If so, please select the default 'Nothing at all'.")
+
+
+    st.divider()
+
+    st.write("""
+    **Conditions of usage**:
+             
+    > While using Civic Sage, your prompts/messages/questions will be stored and personal information anonymised for group-wide analysis of sentiment and topics of interest. Your *individual* conversation will **NOT** be viewed. However, please do not include any private or sensitive information as part of your conversation.
+    """)
+
+    confirm = st.checkbox("**I agree to the conditions set out above while using Civic Sage.**")
+
+    submit = st.button("Continue", disabled=not confirm)
+    if submit:
+        st.session_state.usage_agreement = True
+        st.session_state.user_knowledge_politics = user_knowledge_politics
+        st.session_state.user_knowledge_politics = user_knowledge_parliament
+        st.session_state.user_knowledge_politics = user_knowledge_government
+
+        st.rerun()
+
+if st.session_state.usage_agreement == False:
+    usage_agreement()
+else:
+    # Visual confirmation of submission
+    st.info("Successful Authentication | You have agreed to the Civic Sage Usage Agreement", icon=":material/check_box:")
+
+
+
+st.info("Need to include a thing where, when selecting MP, if yours isnt there, heres a list of other MPs:")
+
+st.title("Search for an MP")
 # chat_messages = [
 #     {"role": "ai", "message": {"content": f"Hi there! Feel free to ask me to explain any political information about {mp_name}!"}},
 #     {"role": "user", "message": {"content": "What did they vote for on the assisted dying bill?"}},
@@ -60,6 +110,11 @@ def get_mp_data(mp_name: str) -> namedtuple:
     }
 
     return mps[mp_name]
+
+
+st.info("NEED TO TURN OFF CHATGPT OPTIOON FOR SHARING PROMPTS FOR EXTRA TOKENS BEFORE DEPLYOING TO PROD")
+st.info("Contains Parliamentary information licensed under the Open Parliament Licence v3.0.")
+
 
 
 parties_main_theme = {

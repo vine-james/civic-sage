@@ -243,3 +243,6 @@ def create_page_setup(page_name: str) -> None:
 
 
 
+def convert_to_uppercase(str):
+    return str.upper()
+
