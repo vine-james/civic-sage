@@ -6,20 +6,7 @@ from streamlit_extras.mention import mention
 from streamlit_extras.add_vertical_space import add_vertical_space 
 
 st_utils.create_page_setup(page_name="Home")
-# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-A-1.png"))
-# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-A-2.png"))
-
-# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-B-1.png"))
-# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-B-2.png"))
-
-# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-C-1.png"))
-
-# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-D-1.png"))
-# st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "CivicSage-Banner-D-2.png"))
-st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "civic-sage-banner.png"))
-st.image(st_utils.get_themed_icon(constants.PATH_IMAGES / "civic-sage-banner-2.png"))
-
-
+st.image(constants.PATH_IMAGES / "civic-sage-banner.png")
 
 
 columns = st.columns([1, 1, 2])
@@ -40,7 +27,7 @@ st.write("Civic Sage analyses anonymises conversations and analyses them as a gr
 
 st.divider()
 
-st.write("This product was created in partial completion of my Bournemouth University BSc Dissertation. Code is accessible via GitHub, deployed with [Streamlit Community Cloud](https://streamlit.io/cloud) and data is stored/read from an [Amazon Relational Database](https://aws.amazon.com/rds/).")
+st.write("This product was created in partial completion of my Bournemouth University BSc Dissertation. Code is accessible via GitHub, deployed with [Streamlit Cloud](https://streamlit.io/cloud) and each data pipeline is handled within [Pinecone](https://www.pinecone.io/), AWS [DynamoDB](https://aws.amazon.com/dynamodb/), [S3](https://aws.amazon.com/s3/) & [Lambda](https://aws.amazon.com/lambda/).")
          
         
 st.write("You can access the code, or connect with me here:")
