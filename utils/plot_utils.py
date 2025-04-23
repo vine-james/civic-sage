@@ -7,7 +7,7 @@ import geopandas as gpd
 
 palettes = {
     "sequential": ["#fee0d2", "#fcae91", "#fb6a4a", "#cb181d", "#67000d"],
-    "categorical": ["#2171b5", "#c33d69", "#8456ce", "#e07941", "#6BAE13", "#096f64"],
+    "categorical": ["#2171b5", "#E07941", "#8456ce", "#c33d69", "#6BAE13", "#096f64"],
     "pos-neu-neg": ["#2ecc71", "#7f8c8d", "#e74c3c"],
     "highlight": ["#d7191c"],
   }
@@ -375,9 +375,9 @@ def plot_sessions_by_ward(df, mp_name, constituency):
 
     style_plotly_chart(
         fig=fig,
-        chart_title=f"Unique Sessions by Ward",
+        chart_title="Unique Sessions by Ward",
         chart_type=ChartTypes.CHOROPLETH,
-        yaxis_title=f"Sessions from outside of Constituency: {df[df["Ward"] == "Outside"]["Sessions"].iloc[0]}",
+        yaxis_title=f"Sessions from outside of Constituency: {df[df['Ward'] == 'Outside']['Sessions'].iloc[0]}",
         gdf=gdf,
         footnote="A unique session may not always equate to a unique user.",
     )
@@ -447,7 +447,7 @@ def plot_political_knowledge_by_ward(df, mp_name, constituency):
         fig=fig,
         chart_title=f"Average knowledge of {option} by Ward",
         chart_type=ChartTypes.CHOROPLETH,
-        yaxis_title=f"Average from outside of Constituency: {df[df["Ward"] == "Outside"]["Rating"].iloc[0]}",
+        yaxis_title=f"Average from outside of Constituency: {df[df['Ward'] == 'Outside']['Rating'].iloc[0]}",
         gdf=gdf,
         footnote="'Knowledge' as self-described on a rating of 1-4, accompanied by descriptive labels presented.",
     )

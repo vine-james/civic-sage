@@ -38,29 +38,27 @@ message_reports_table = boto_utils.dynamodb_init("message-reports")
 
 
 
-def get_version() -> str:
-        try:
-            response = requests.get(
-                url="https://api.github.com/repos/vine-james/civic-sage/releases/latest", 
-                headers={"Authorization": f"Bearer {constants.TOKEN_GITHUB}"}, 
-                timeout=10
-            )
+def get_version():
+    try:
+        response = requests.get(
+            url="https://api.github.com/repos/vine-james/civic-sage/releases/latest", 
+            headers={"Authorization": f"Bearer {constants.TOKEN_GITHUB}"}, 
+            timeout=10
+        )
 
-            if response.status_code == 200:
-                return response.json().get("tag_name", "No version found")[1:]
-            
-            else:
-                # TODO: Test case
-                print(f"Error: Unable to fetch version (HTTP {response.status_code})")
-                return "Unavailable"
-            
-        except Exception:
-            # TODO: Test case
-            print("Error: Unable to connect to GitHub")
+        if response.status_code == 200:
+            return response.json().get("tag_name", "No version found")[1:]
+        
+        else:
+            print(f"Error: Unable to fetch version (HTTP {response.status_code})")
             return "Unavailable"
+        
+    except Exception:
+        print("Error: Unable to connect to GitHub")
+        return "Unavailable"
 
 
-def create_header_bar() -> None:
+def create_header_bar():
    st.markdown("""
         <style>
             [data-testid="stDecoration"] {
@@ -71,11 +69,9 @@ def create_header_bar() -> None:
         """, unsafe_allow_html=True) 
 
 
-def create_sidebar() -> None:
-     with st.sidebar:
+def create_sidebar():
+    with st.sidebar:
         # Logo, Title, Version
-        # st.image(constants.PATH_IMAGES / "civic-sage-logo-text.png", width=160)
-
         st.image(constants.PATH_IMAGES / "civic-sage-logo.png", width=160)
         st.logo(constants.PATH_IMAGES / "none.png", icon_image=constants.PATH_IMAGES / "civic-sage-logo.png", size="large")
 
@@ -95,9 +91,6 @@ def create_sidebar() -> None:
         st.page_link("pages/search.py", label="Search for an MP", icon=":material/search:")
         st.page_link("pages/dashboard.py", label="Dashboard", icon=":material/view_kanban:")
 
-        # st.subheader("🔒 Private")
-        # st.page_link("pages/testing.py", label="[DEV] Testing")
-
         st.divider()
 
         # Dissertation review notice
@@ -106,7 +99,7 @@ def create_sidebar() -> None:
             st.image(constants.PATH_IMAGES / "survey-qr-code.png")
 
 
-def create_page_config(page_name: str, layout: str) -> None:
+def create_page_config(page_name, layout):
     st.set_page_config(
         page_title=f"Civic Sage | {page_name}",
         page_icon="🗳️",
@@ -115,7 +108,7 @@ def create_page_config(page_name: str, layout: str) -> None:
     )
 
 
-def inject_html_styling() -> None:
+def inject_html_styling():
     # Inject re-styling theme HTML/CSS
     st.markdown(
         """
@@ -182,7 +175,7 @@ def inject_html_styling() -> None:
     )
 
 
-def create_page_setup(page_name: str, layout: str = "centered") -> None:
+def create_page_setup(page_name, layout="centered"):
     create_page_config(page_name, layout)
     create_header_bar()
     create_sidebar()
@@ -214,10 +207,7 @@ def get_mps_keywords(mp_name):
             keywords_latest_first = keywords_stripped[::-1]
             keywords_first_four = keywords_latest_first[:4]
             keywords_output = ", ".join(keywords_first_four)
-
-            print(keywords_latest_first, keywords_first_four, keywords_output)
             
-
     return keywords_output
 
 
@@ -267,7 +257,7 @@ def usage_agreement_and_init_setup(mp_name):
 
 
 @st.dialog("Report a mistake in a Civic Sage response")
-def report_message(message, message_index):
+def report_message(message, message_index) -> None:
 
     if "report_submitted" not in st.session_state:
         st.session_state.report_submitted = False
@@ -360,16 +350,8 @@ def get_mp_continuous_serving_period(mp_elections):
 
 def get_mp_summary_from_db(mp_name):
     # Function to call database and get details for that specific MP
-    print("CALLING BOTO")
-
     boto_table = boto_utils.dynamodb_init("summaries")
-
-    print(boto_table, "mp_name", mp_name)
     mp_summary_data = boto_utils.dynamodb_fetch_record(boto_table, "mp_name", mp_name)
-
-    print()
-
-    print("RECEIVED MP DATA: ", mp_summary_data)
 
     return mp_summary_data
 
@@ -381,7 +363,7 @@ def setup_mp_summary_details(mp_name, mp_summary_data):
     # Portrait
     with col_portrait:
         if "portrait_data" not in st.session_state:
-            print("GETTING PORTRAIT")
+            # print("GETTING PORTRAIT")
             portrait_response = requests.get(f"{mp_summary_data['Picture']}?cropType=3")
             if portrait_response.status_code == 200:
                 st.session_state.portrait_data = BytesIO(portrait_response.content)
@@ -418,12 +400,14 @@ def setup_mp_summary_details(mp_name, mp_summary_data):
         # Back button to return to finding an MP
         with col_button:
              if st.button("", icon=":material/arrow_back:"):
-                analysis_utils.analyse_chat(st.session_state)
-                st.session_state.current_mp = None
-                st.session_state.mp_summary_data = None
-                st.session_state.portrait_data = None
-                st.session_state.mp_keywords = None
-                # TODO: Replace with constant of PAGE_SETUP_FIND_MP
+                # Check that any chat history exists
+                if len(st.session_state.chat_history.all_messages) > 0:
+                    analysis_utils.analyse_chat(st.session_state)
+                del st.session_state.current_mp
+                del st.session_state.mp_summary_data
+                del st.session_state.portrait_data
+                del st.session_state.mp_keywords
+                del st.session_state.usage_agreement
                 st.session_state.current_page_function = "Find an MP"
                 st.rerun()
 
@@ -608,26 +592,8 @@ def process_chat_history():
         elif isinstance(chat_message_dict["message"], AIMessage):
             send_chat_message({"role": "ai", "message": chat_message_dict["message"], "time": chat_message_dict["time"],  "message_index": chat_message_dict["message_index"]})
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 
-# 
-# 
-# 
+ 
 # SEARCH SECTION FUNCTIONS 
-
-# TODO: CONSTANTS TO BE GOTTEN FROM DATABASE
 full_ids = ["Paul Holmes (Hamble Valley)", "Jessica Toale (Bournemouth West)", "Tom Hayes (Bournemouth East)"]
 mps = [id.split("(")[0][:-1] for id in full_ids]
 constituencies = [id.split("(")[1][:-1] for id in full_ids]
@@ -635,19 +601,17 @@ constituencies = [id.split("(")[1][:-1] for id in full_ids]
 
 def go_to_mp_query(mp_name):
     st.session_state.current_mp = mp_name
-    # TODO: Replace this with constant
     st.session_state.current_page_function = "Search LLM"
     st.rerun()
 
 
 def search(search_term):
-    # TODO: Need to write a search function as it's just returning the entire list
     return full_ids
 
 
 def check_constituency(searched_constituency, mp_name):
     if searched_constituency not in constituencies:
-        st.warning("Unfortunately your constituency is not covered within the current Civic Sage database as part of this testing phase.\n\We recommend selecting an available Member of Parliament through the 'Search for an MP manually' -> 'Search by Name or Constituency' workflow. We apologise for the inconvenience.", icon=":material/error:")
+        st.warning("Unfortunately your constituency is not covered within the current Civic Sage database as part of this testing phase.\n\nWe recommend selecting an available Member of Parliament through the 'Search for an MP manually' -> 'Search by Name or Constituency' workflow. We apologise for the inconvenience.", icon=":material/error:")
         
     else:
         if st.button(f"View {mp_name}", icon=":material/search:"):
@@ -667,12 +631,26 @@ def query_manually():
     with tab_search_postcode:
         postcode = st.text_input("Enter a Postcode")
 
+        # NOTE: This set of code has to be done this way, instead of using check_constituency.
+        # There seems to be behaviour where functions within 2+ levels of if-statement Streamlit buttons will not execute. This is my work-around.
         if st.button("Search Postcode"):
-            constituency, mp = location_utils.get_mp_by_postcode(postcode)
 
-            st.write(f"The MP representing **{postcode} ({constituency})** is **{mp}**.")
+            pattern = r"^([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})$"
+            is_postcode = re.fullmatch(pattern, postcode.strip().upper()) is not None
+            # Credit to https://stackoverflow.com/questions/164979/regex-for-matching-uk-postcodes
+            if is_postcode:
+                constituency, mp = location_utils.get_mp_by_postcode(postcode)
 
-            check_constituency(constituency, mp)
+                st.write(f"The MP representing **{postcode.upper()} ({constituency})** is **{mp}**.")
+
+                if constituency not in constituencies:
+                    st.warning("Unfortunately your constituency is not covered within the current Civic Sage database as part of this testing phase.\n\We recommend selecting an available Member of Parliament through the 'Search for an MP manually' -> 'Search by Name or Constituency' workflow. We apologise for the inconvenience.", icon=":material/error:")
+                else:
+                    st.button(f"View {mp}", icon=":material/search:", on_click=go_to_mp_query, args=(mp, ))
+
+            else:
+                st.warning(f"**{postcode}** does not seem to match the [expected format for UK postcodes](https://ideal-postcodes.co.uk/guides/uk-postcode-format). Please check your input and try again.\n\nPlease contact the Civic Sage developers if you believe this is an error.")
+
 
     with tab_search_mp:
         mp_name_constituency = st_searchbox(search, placeholder="Search for an MP",)

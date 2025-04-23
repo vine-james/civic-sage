@@ -569,7 +569,6 @@ def collect_mp_data(mps_to_query):
 
         api_type = "Members"
 
-        # TODO: For daily updater.
         mp_latest_records_dict = {
             "mp_name": member_dict["Name"],
         }
@@ -586,7 +585,6 @@ def collect_mp_data(mps_to_query):
                 page_data = send_api_request(f"{api_url}page={counter}")
                 first_page_entry = page_data
 
-                # TODO: For daily updater.
                 if page_data["items"]:
                     # First checking if any records exist
                     latest_record_identifier = page_data["items"][0]["value"][api_dict["latest_record_field"]]
@@ -613,7 +611,6 @@ def collect_mp_data(mps_to_query):
             time.sleep(0.1)
 
         
-        # TODO: For daily updater.
         boto_utils.dynamodb_upload_record(data=mp_latest_records_dict, table=mp_daily_update_table)
         
         mp_data["Parliament"] = mp_data_source_parliament

@@ -42,7 +42,7 @@ MPS = {
 
 def create_chart(mp_name, mp_constituency, file_name, mp_data):
     chart_setup_functions[file_name](mp_data[file_name]["Data"], mp_name, mp_constituency)
-    st.badge(f"Data: **{mp_data[file_name]["Date"]}**", color="blue", icon=":material/monitoring:")
+    st.badge(f"Data: **{mp_data[file_name]['Date']}**", color="blue", icon=":material/monitoring:")
 
 
 def preload_chart_data_into_session_state():
@@ -169,7 +169,7 @@ def run():
     col_select_mp, _, col_fetch_data = st.columns([25, 1, 5])
 
     with col_select_mp:
-        mp_options = [f"{mp_name} ({mp_dict["Constituency"]})" for mp_name, mp_dict in MPS.items()]
+        mp_options = [f"{mp_name} ({mp_dict['Constituency']})" for mp_name, mp_dict in MPS.items()]
         
         mp_selected = st.selectbox(":material/person: Select a MP", mp_options)
 
@@ -251,7 +251,7 @@ def run():
 @st.dialog("Login to the User Dashboard")
 def login():
     st.info("**TESTERS:** The password is   `test`", icon=":material/construction:")
-    password_input = st.text_input("Enter Password")
+    password_input = st.text_input("Enter Password", type="password")
     if st.button("Submit"):
         if password_input == constants.PASSWORD_DASHBOARD:
             st.session_state.authenticated = True

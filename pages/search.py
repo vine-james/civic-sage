@@ -55,7 +55,6 @@ def page_setup_search_llm():
     if "chat_history" in st.session_state:
         # Send intro message, which is never logged as part of the chat history due to its independent send nature (outside of rag_llm_utils)
         if "intro_sent" not in st.session_state:
-            # TODO: Is this why it types it first
             # If no chat history, send the "start message" for the conversation.
             st_utils.send_chat_message({"role": "ai", "message": AIMessage(f"Hi there! Feel free to ask me to explain any political information about {CURRENT_MP}!"), "time": datetime.now(), "message_index": None}, speak=True)
             st.session_state.intro_sent = True
@@ -80,7 +79,6 @@ def page_setup_search_llm():
 
         # Sample questions to ask from a button popover
         with col_samples:
-            # TODO: Add behaviour here.
             # Make sure you can port this out. We dont want a giant paragraph
             with st.popover("", icon=":material/help:", help="Select from a list of sample questions"):
                 st.markdown(f"<div style='text-align: center'>Popular search terms for users interested in <b>{CURRENT_MP}</b> are:<br><i>{st.session_state.mp_keywords}</i></div>", unsafe_allow_html=True)

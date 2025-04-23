@@ -503,7 +503,6 @@ def collect_mp_data(mps_to_query):
 
         api_type = "Members"
 
-        # TODO: For daily updater.
         mp_new_latest_records_dict = {
             "mp_name": member_dict["Name"],
         }
@@ -524,7 +523,6 @@ def collect_mp_data(mps_to_query):
 
                 database_latest_record_identifier = int(mp_latest_records[api_dict["path"]]) if mp_latest_records[api_dict["path"]] != "None" else mp_latest_records[api_dict["path"]]
 
-                # TODO: For daily updater.
                 if page_data["items"]:
                     # First checking if any records exist
                     # search_latest_record_identifier = page_data["items"][0]["value"][api_dict["latest_record_field"]]
@@ -536,7 +534,6 @@ def collect_mp_data(mps_to_query):
                 
                 # Check first entry of first page is not already recorded
                 if (database_latest_record_identifier == search_latest_record_identifier):
-                    # TODO: Should this be skip/continue instead?
                     print(f"[{member_dict["Name"]}]: Found latest record as first entry in first page {api_dict["path"]} -- {database_latest_record_identifier} == {search_latest_record_identifier}")
                     continue
 

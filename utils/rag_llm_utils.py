@@ -147,7 +147,6 @@ chain_summarise_history = chat_history.get_message_window_formatted | summarise_
 
 prompt_template = ChatPromptTemplate.from_messages(
     [
-        # TODO: add some few-shot prompting examples of overly sensitive questions.
         SystemMessage(
             content="""
             Your name is Civic Sage. You are designed to helpfully answer questions about UK politics, government and parliament. Answer questions based on the context provided. 
@@ -235,8 +234,6 @@ def check_and_search(result, retriever, mp_name, mp_constituency):
                             ("human", "Original question: {question}"),
                         ]
                     )
-
-                    # TODO: Possibly remove this and reset to just llm_with_tools if this becomes too problematic.
 
                     chain_web_search = prompt_template_search | llm_with_tools
                     search_results = chain_web_search.invoke({"question": question, "mp_name": mp_name, "mp_constituency": mp_constituency})
