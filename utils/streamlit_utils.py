@@ -259,65 +259,60 @@ def usage_agreement_and_init_setup(mp_name):
 @st.dialog("Report a mistake in a Civic Sage response")
 def report_message(message, message_index) -> None:
 
-    if "report_submitted" not in st.session_state:
-        st.session_state.report_submitted = False
+    st.write(":material/speaker_notes_off: Reported Response:")
+    block_col, reported_response = st.columns([1, 20])
+    with block_col:
+        st.markdown("""
+        <div style="background-color: #808080; width: 40%; height: 1000%;">
+        </div>
+        """, unsafe_allow_html=True)
+    with reported_response:
+        st.caption(message)
 
-    if not st.session_state.report_submitted:
-        st.write(":material/speaker_notes_off: Reported Response:")
-        block_col, reported_response = st.columns([1, 20])
-        with block_col:
-            st.markdown("""
-            <div style="background-color: #808080; width: 40%; height: 1000%;">
-            </div>
-            """, unsafe_allow_html=True)
-        with reported_response:
-            st.caption(message)
+    st.divider()
 
-        st.divider()
+    reported_tags = st.pills(":material/label: How would you tag the response error? [Multi-select]", ["Inaccurate information", "Inaccurate sources", "Political bias", "Explanation not understandable", "Other"], selection_mode="multi")
 
-        reported_tags = st.pills(":material/label: How would you tag the response error? [Multi-select]", ["Inaccurate information", "Inaccurate sources", "Political bias", "Explanation not understandable", "Other"], selection_mode="multi")
+    comments = st.text_area(
+        ":material/rate_review: Enter any additional comments below:",
+        ""
+    )
 
-        comments = st.text_area(
-            ":material/rate_review: Enter any additional comments below:",
-            ""
+    if st.button("Submit", disabled=(reported_tags is None)):
+        st.session_state.report_submitted = True
+
+        previous_messages = st.session_state.chat_history.get_reported_message_context(message_index)
+        previous_messages_anonymised = [analysis_utils.anonymize_text(message, st.session_state.current_mp) for message in previous_messages]
+
+        boto_utils.dynamodb_upload_record(
+            message_reports_table,
+            {
+                # Partition key
+                "mp_name": st.session_state.current_mp,
+
+                # Sort key (PK = partition key + sort key)
+                "message_reported_datetime": str(datetime.now()),
+
+                "Response": message,
+                "Reported Tags": reported_tags,
+                "Reportee Comments": comments,
+
+                # Get last 5 messages
+                "Previous Messages": previous_messages_anonymised,
+
+            },
         )
-     
-        if st.button("Submit", disabled=(reported_tags is None)):
-            st.session_state.report_submitted = True
 
-            previous_messages = st.session_state.chat_history.get_reported_message_context(message_index)
-            previous_messages_anonymised = [analysis_utils.anonymize_text(message, st.session_state.current_mp) for message in previous_messages]
-
-            boto_utils.dynamodb_upload_record(
-                message_reports_table,
-                {
-                    # Partition key
-                    "mp_name": st.session_state.current_mp,
-
-                    # Sort key (PK = partition key + sort key)
-                    "message_reported_datetime": str(datetime.now()),
-
-                    "Response": message,
-                    "Reported Tags": reported_tags,
-                    "Reportee Comments": comments,
-
-                    # Get last 5 messages
-                    "Previous Messages": previous_messages_anonymised,
-
-                },
-            )
-
-    else:
         st.success("**Report submitted successfully**\n\nThank you for your feedback!\nThis information will be assessed by a human reviewer.", icon=":material/task_alt:")
+
         dismiss_bar = st.progress(0, text=None)
-        time_to_read = 6
+        time_to_read = 3
 
         for percent_complete in range(100):
             time.sleep(time_to_read / 100)
             dismiss_bar.progress(percent_complete + 1, text=None)
         time.sleep(1)
         st.rerun()
-        st.session_state.report_submitted = False
 
 
 def convert_datetime_str(datetime_str):

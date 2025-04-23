@@ -20,30 +20,42 @@ with columns[1]:
 
 add_vertical_space(2)
 
+st.markdown(
+    "<link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css' rel='stylesheet'>",
+    unsafe_allow_html=True
+)
 
-st.write("""Civic Sage makes politics easier to understand and more accessible. Our platform lets you ask questions and get factual, easy-to-digest information about your local Members of Parliament (MP). Whether you’re curious about what they’ve done, what they stand for, or how they’re representing you, Civic Sage gives you clear and trustworthy answers. Empower yourself with knowledge and engage confidently in your democracy.""")
+st.write("""
+    Civic Sage aims to make UK parliamentary politics easier to understand and more accessible.
 
-st.write("Civic Sage analyses anonymises conversations and analyses them as a group to provide insights into what matters most to people in your area — helping both citizens and representatives connect better.")
+    Whether you’re curious about what a Member of Parliament (MP) stands for, or how your local MP represents you, Civic Sage allows you to ask questions and receive factual, easy-to-digest responses.
+    
+    Civic Sage analyses anonymised conversations at scale, generating group-level insights into user engagement per specific MP — aspiring to helping both citizens and representatives connect better online.
 
-st.divider()
+    ---
 
-st.write("This product was created in partial completion of my Bournemouth University BSc Dissertation. Code is accessible via GitHub, deployed with [Streamlit Cloud](https://streamlit.io/cloud) and each data pipeline is handled within [Pinecone](https://www.pinecone.io/), AWS [DynamoDB](https://aws.amazon.com/dynamodb/), [S3](https://aws.amazon.com/s3/) & [Lambda](https://aws.amazon.com/lambda/).")
-         
-        
-st.write("You can access the code, or connect with me here:")
+    This product was created in partial completion of my Bournemouth University BSc Dissertation. Code is accessible via GitHub, deployed with [Streamlit Cloud](https://streamlit.io/cloud) and each data pipeline is handled within [Pinecone](https://www.pinecone.io/), AWS [DynamoDB](https://aws.amazon.com/dynamodb/), [S3](https://aws.amazon.com/s3/), [Lambda](https://aws.amazon.com/lambda/) & [ECR](https://aws.amazon.com/ecr/).
 
-col_1, col_2, col_3, _ = st.columns([0.2, 0.16, 0.25, 0.25])
-with col_1:
+    You can access the code, or connect with me here:
+""")
+
+cols = st.columns([0.22, 0.18, 0.18, 0.24, 0.2])
+with cols[0]:
     mention(label="Connect with me",
-            icon="👤",
+            icon="<i class='fa-brands fa-linkedin'></i>",
             url="https://www.linkedin.com/in/j-vine/")
+    
+with cols[1]:
+    mention(label="Get in touch",
+            icon="<i class='fa-solid fa-envelope'></i>",
+            url="mailto:james@jvine.uk")
 
-with col_2:
+with cols[2]:
     mention(label="GitHub Repo",
             icon="github",
             url="https://github.com/vine-james/civic-sage")
 
-with col_3:
+with cols[3]:
     mention(label="Hosted Webserver",
             icon="streamlit",
             url="https://civicsage.streamlit.app/")

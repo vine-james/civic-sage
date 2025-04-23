@@ -152,6 +152,7 @@ def update_fig_style(fig, chart_title, footnote, chart_type, yaxis_title, xaxis_
             tickwidth=0,
             linewidth=0,
             showgrid=True,
+            nticks=5,
         ),
         xaxis=dict(
             ticks="outside",
@@ -476,17 +477,12 @@ def plot_conversations_by_hour(df, mp_name, constituency):
 
     fig.update_layout(
         barmode="stack",
-        yaxis=dict(
-            dtick=1,
-            tick0=0,
-            tickmode="linear",
-        )
     )
 
     style_plotly_chart(
         fig=fig,
         yaxis_title=f"",
-        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> sessions by Time of Day</span>",
+        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> Sessions by Time of Day</span>",
         chart_type=ChartTypes.BAR,
     )
 
@@ -514,11 +510,6 @@ def plot_conversations_by_length(df, mp_name, constituency):
 
     fig.update_layout(
         barmode="stack",
-        yaxis=dict(
-            dtick=1,
-            tick0=0,
-            tickmode="linear",
-        ),
         xaxis=dict(
             categoryorder="array",
             categoryarray=["Less than 1 minute", "1-5 minutes", "5-15 minutes", "15-30 minutes", "30 minutes to 1 hour", "1 hour+"] 
@@ -528,7 +519,7 @@ def plot_conversations_by_length(df, mp_name, constituency):
     style_plotly_chart(
         fig=fig,
         yaxis_title=f"",
-        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> sessions by Length of Session</span>",
+        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> Sessions by Length of Session</span>",
         chart_type=ChartTypes.BAR,
     )
 
@@ -556,18 +547,13 @@ def plot_conversations_by_messages(df, mp_name, constituency):
 
     fig.update_layout(
         barmode="stack",
-        yaxis=dict(
-            dtick=1,
-            tick0=0,
-            tickmode="linear",
-        )
     )
 
     style_plotly_chart(
         fig=fig,
         yaxis_title="Sessions",
         xaxis_title="Messages",
-        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> sessions by Number of Messages</span>",
+        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> Sessions by Number of Messages</span>",
         chart_type=ChartTypes.BAR,
     )
 
@@ -596,17 +582,13 @@ def plot_sessions_by_day(df, mp_name, constituency):
     ))
 
     fig.update_layout(
-        yaxis=dict(
-            dtick=1,
-            tick0=0,
-            tickmode="linear",
-        )
+        xaxis_tickformat="%b %d",
     )
 
     style_plotly_chart(
         fig=fig,
         yaxis_title=f"",
-        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> sessions by Day of Month</span>",
+        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> Sessions by Day of Month</span>",
         chart_type=ChartTypes.LINE,
         grouped_plot=True,
     )
@@ -647,7 +629,10 @@ def plot_median_sentiment_by_day(df, mp_name, constituency):
             type="linear",
             range=[0, 1],
             tickformat=".0%",
+            dtick=0.2,
         ),
+        xaxis_tickformat="%b %d",
+        
     ),
 
     style_plotly_chart(
@@ -695,7 +680,9 @@ def plot_median_stance_by_day(df, mp_name, constituency):
             type="linear",
             range=[0, 1],
             tickformat=".0%",
+            dtick=0.2,
         ),
+        xaxis_tickformat="%b %d",
     ),
 
     style_plotly_chart(
@@ -744,7 +731,9 @@ def plot_median_ideology_by_day(df, mp_name, constituency):
             type="linear",
             range=[0, 1],
             tickformat=".0%",
+            dtick=0.2,
         ),
+        xaxis_tickformat="%b %d",
     ),
 
     style_plotly_chart(
@@ -769,37 +758,38 @@ def plot_top_keywords_by_week(df, mp_name, constituency):
         "Other Users": "Outside",
     }
     
-    fig = go.Figure()
     df_selected = df[df["Constituency"] == option_map[option]]
-
     pivot_df = df_selected.groupby(["Week", "Top Keyword"])["Count"].sum().reset_index()
-    pivot_table = pivot_df.pivot(index="Week", columns="Top Keyword", values="Count").fillna(0)
+    weeks = sorted(df_selected["Week"].unique())
 
-    norm_pivot = pivot_table.div(pivot_table.sum(axis=1), axis=0)
-    norm_pivot = norm_pivot * 100
+    fig = go.Figure()
+    colours = get_colour_palette("categorical", num_colours=6)
 
-    colours = get_colour_palette(palette_type="categorical", num_colours=6)
+    for week in weeks:
+        week_df = pivot_df[pivot_df["Week"] == week]
+        keywords = week_df["Top Keyword"].tolist()
+        counts = week_df["Count"].tolist()
+        percents = [100 * c / sum(counts) if sum(counts) > 0 else 0 for c in counts]
 
-    for i, keyword in enumerate(norm_pivot.columns):
-        colour = colours[i]
-        if keyword == "No data available":
-            colour = colour_grey
-
-        fig.add_bar(
-            x=norm_pivot.index,
-            y=norm_pivot[keyword],
-            name=keyword,
-            marker_color=colour,
-            text=[keyword] * len(norm_pivot.index),
-            textposition="inside",
-            textfont=dict(color="white", size=12),
-            insidetextanchor="middle",
-            hovertemplate=f"<b>Keyword</b>: {keyword}"+"<br><b>Share</b>: %{y}<extra></extra>",
-        )
+        for percent, keyword, color in zip(percents, keywords, colours):
+            if keyword == "No data available":
+                color = colour_grey
+            
+            fig.add_bar(
+                x=[week],
+                y=[percent],
+                name=keyword,
+                marker_color=color,
+                text=[keyword],
+                textposition="inside",
+                textfont=dict(color="white", size=12),
+                insidetextanchor="middle",
+                hovertemplate=f"<b>Keyword</b>: {keyword}<br><b>Share</b>: {percent:.1f}%<extra></extra>",
+            )
 
     fig.update_layout(
         barmode="stack",
-        yaxis=dict(ticksuffix="%")
+        yaxis=dict(ticksuffix="%", dtick=20)
     )
 
     style_plotly_chart(
@@ -824,38 +814,38 @@ def plot_top_web_keywords_by_week(df, mp_name, constituency):
         "Other Users": "Outside",
     }
     
-    fig = go.Figure()
     df_selected = df[df["Constituency"] == option_map[option]]
-
     pivot_df = df_selected.groupby(["Week", "Top Keyword"])["Count"].sum().reset_index()
-    pivot_table = pivot_df.pivot(index="Week", columns="Top Keyword", values="Count").fillna(0)
-
-    norm_pivot = pivot_table.div(pivot_table.sum(axis=1), axis=0)
-    norm_pivot = norm_pivot * 100
-
-    colours = get_colour_palette(palette_type="categorical", num_colours=6)
+    weeks = sorted(df_selected["Week"].unique())
 
     fig = go.Figure()
-    for i, keyword in enumerate(norm_pivot.columns):
-        colour = colours[i]
-        if keyword == "No data available":
-            colour = colour_grey
+    colours = get_colour_palette("categorical", num_colours=6)
 
-        fig.add_bar(
-            x=norm_pivot.index,
-            y=norm_pivot[keyword],
-            name=keyword,
-            marker_color=colour,
-            text=[keyword] * len(norm_pivot.index),
-            textposition="inside",
-            textfont=dict(color="white", size=12),
-            insidetextanchor="middle",
-            hovertemplate=f"<b>Keyword</b>: {keyword}"+"<br><b>Share</b>: %{y}<extra></extra>",
-        )
+    for week in weeks:
+        week_df = pivot_df[pivot_df["Week"] == week]
+        keywords = week_df["Top Keyword"].tolist()
+        counts = week_df["Count"].tolist()
+        percents = [100 * c / sum(counts) if sum(counts) > 0 else 0 for c in counts]
+
+        for percent, keyword, color in zip(percents, keywords, colours):
+            if keyword == "No data available":
+                color = colour_grey
+            
+            fig.add_bar(
+                x=[week],
+                y=[percent],
+                name=keyword,
+                marker_color=color,
+                text=[keyword],
+                textposition="inside",
+                textfont=dict(color="white", size=12),
+                insidetextanchor="middle",
+                hovertemplate=f"<b>Keyword</b>: {keyword}<br><b>Share</b>: {percent:.1f}%<extra></extra>",
+            )
 
     fig.update_layout(
         barmode="stack",
-        yaxis=dict(ticksuffix="%")
+        yaxis=dict(ticksuffix="%", dtick=20)
     )
 
     style_plotly_chart(
@@ -881,11 +871,7 @@ def plot_reported_responses_by_day(df, mp_name, constituency):
     ))
 
     fig.update_layout(
-        yaxis=dict(
-            dtick=1,
-            tick0=0,
-            tickmode="linear",
-        )
+        xaxis_tickformat="%b %d",
     )
 
     style_plotly_chart(
@@ -910,11 +896,7 @@ def plot_sensitive_messages_by_day(df, mp_name, constituency):
     ))
 
     fig.update_layout(
-        yaxis=dict(
-            dtick=1,
-            tick0=0,
-            tickmode="linear",
-        )
+        xaxis_tickformat="%b %d",
     )
 
     style_plotly_chart(
@@ -928,36 +910,37 @@ def plot_sensitive_messages_by_day(df, mp_name, constituency):
 
 
 def plot_top_keywords_reports_by_week(df, mp_name, constituency):
-    fig = go.Figure()
-
     pivot_df = df.groupby(["Week", "Top Keyword"])["Count"].sum().reset_index()
-    pivot_table = pivot_df.pivot(index="Week", columns="Top Keyword", values="Count").fillna(0)
+    weeks = sorted(df["Week"].unique())
 
-    norm_pivot = pivot_table.div(pivot_table.sum(axis=1), axis=0)
-    norm_pivot = norm_pivot * 100
+    fig = go.Figure()
+    colours = get_colour_palette("categorical", num_colours=6)
 
-    colours = get_colour_palette(palette_type="categorical", num_colours=6)
+    for week in weeks:
+        week_df = pivot_df[pivot_df["Week"] == week]
+        keywords = week_df["Top Keyword"].tolist()
+        counts = week_df["Count"].tolist()
+        percents = [100 * c / sum(counts) if sum(counts) > 0 else 0 for c in counts]
 
-    for i, keyword in enumerate(norm_pivot.columns):
-        colour = colours[i]
-        if keyword == "No data available":
-            colour = colour_grey
-
-        fig.add_bar(
-            x=norm_pivot.index,
-            y=norm_pivot[keyword],
-            name=keyword,
-            marker_color=colour,
-            text=[keyword] * len(norm_pivot.index),
-            textposition="inside",
-            textfont=dict(color="white", size=12),
-            insidetextanchor="middle",
-            hovertemplate=f"<b>Keyword</b>: {keyword}"+"<br><b>Share</b>: %{y}<extra></extra>",
-        )
+        for percent, keyword, color in zip(percents, keywords, colours):
+            if keyword == "No data available":
+                color = colour_grey
+            
+            fig.add_bar(
+                x=[week],
+                y=[percent],
+                name=keyword,
+                marker_color=color,
+                text=[keyword],
+                textposition="inside",
+                textfont=dict(color="white", size=12),
+                insidetextanchor="middle",
+                hovertemplate=f"<b>Keyword</b>: {keyword}<br><b>Share</b>: {percent:.1f}%<extra></extra>",
+            )
 
     fig.update_layout(
         barmode="stack",
-        yaxis=dict(ticksuffix="%")
+        yaxis=dict(ticksuffix="%", dtick=20)
     )
 
     style_plotly_chart(
