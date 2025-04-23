@@ -639,7 +639,7 @@ def query_manually():
                 st.write(f"The MP representing **{postcode.upper()} ({constituency})** is **{mp}**.")
 
                 if constituency not in constituencies:
-                    st.warning("Unfortunately your constituency is not covered within the current Civic Sage database as part of this testing phase.\n\We recommend selecting an available Member of Parliament through the 'Search for an MP manually' -> 'Search by Name or Constituency' workflow. We apologise for the inconvenience.", icon=":material/error:")
+                    st.warning("Unfortunately your constituency is not covered within the current Civic Sage database as part of this testing phase.\n\nWe recommend selecting an available Member of Parliament through the 'Search for an MP manually' -> 'Search by Name or Constituency' workflow. We apologise for the inconvenience.", icon=":material/error:")
                 else:
                     st.button(f"View {mp}", icon=":material/search:", on_click=go_to_mp_query, args=(mp, ))
 
