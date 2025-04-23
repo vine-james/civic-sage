@@ -1,7 +1,8 @@
 from pathlib import Path
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 from enum import Enum
+import streamlit as st
 
 
 # Paths
@@ -12,20 +13,26 @@ PATH_CONVERSATIONS = PATH_FILES / "conversations"
 PATH_PDFS = PATH_FILES / "pdfs"
 
 # Tokens
-load_dotenv()
+# load_dotenv() # NOTE: load_dotenv() replaced with streamlit secrets as I am now deploying the app on Streamlit Community Cloud.
 
-TOKEN_GITHUB = os.getenv("GITHUB_REPO_TOKEN")
-TOKEN_OPENAI = os.getenv("OPENAI_TOKEN")
-TOKEN_PINECONE = os.getenv("PINECONE_TOKEN")
-TOKEN_THEYWORKFORYOU = os.getenv("THEYWORKFORYOU_TOKEN")
+def get_secret(key, deployed=True):
+    if deployed:
+        return st.secrets[key]
+    else:
+        return os.getenv(key)
 
-TOKEN_AWS_ACCESS = os.getenv("AWS_ACCESS_KEY")
-TOKEN_AWS_SECRET = os.getenv("AWS_SECRET_KEY")
+TOKEN_GITHUB = get_secret("GITHUB_REPO_TOKEN")
+TOKEN_OPENAI = get_secret("OPENAI_TOKEN")
+TOKEN_PINECONE = get_secret("PINECONE_TOKEN")
+TOKEN_THEYWORKFORYOU = get_secret("THEYWORKFORYOU_TOKEN")
 
-AWS_REGION = os.getenv("AWS_REGION")
-AWS_URL_ANALYSE_FUNCTION = os.getenv("ANALYSE_FUNCTION_URL")
+TOKEN_AWS_ACCESS = get_secret("AWS_ACCESS_KEY")
+TOKEN_AWS_SECRET = get_secret("AWS_SECRET_KEY")
 
-PASSWORD_DASHBOARD = os.getenv("DASHBOARD_PASSWORD")
+AWS_REGION = get_secret("AWS_REGION")
+AWS_URL_ANALYSE_FUNCTION = get_secret("ANALYSE_FUNCTION_URL")
+
+PASSWORD_DASHBOARD = get_secret("DASHBOARD_PASSWORD")
 
 
 # Misc
