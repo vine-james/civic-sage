@@ -35,6 +35,8 @@ st.write("""
     ---
 
     This product was created in partial completion of my Bournemouth University BSc Dissertation. Code is accessible via GitHub, deployed with [Streamlit Cloud](https://streamlit.io/cloud) and each data pipeline is handled within [Pinecone](https://www.pinecone.io/), AWS [DynamoDB](https://aws.amazon.com/dynamodb/), [S3](https://aws.amazon.com/s3/), [Lambda](https://aws.amazon.com/lambda/) & [ECR](https://aws.amazon.com/ecr/).
+    
+    Some key (but not all) packages/software used are: [Streamlit](https://streamlit.io/), [LangChain](https://www.langchain.com/), [Pandas](https://pandas.pydata.org/) / [Geopandas](https://geopandas.org/en/stable/), [Plotly](https://plotly.com/), [Docker](https://www.docker.com/), [Presidio](https://microsoft.github.io/presidio/).
 
     You can access the code, or connect with me here:
 """)

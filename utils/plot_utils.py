@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 from shapely.geometry import mapping
 import streamlit as st
 import geopandas as gpd
+import pandas as pd
 
 palettes = {
     "sequential": ["#fee0d2", "#fcae91", "#fb6a4a", "#cb181d", "#67000d"],
@@ -471,7 +472,7 @@ def plot_conversations_by_hour(df, mp_name, constituency):
     fig.add_trace(go.Bar(
         x=df["Time Period"],
         y=df["Outside"],
-        hovertemplate=f"<b>Other Users</b>: "+"%{y}<extra></extra>",
+        hovertemplate=f"<b>External Users</b>: "+"%{y}<extra></extra>",
         marker_color=colours[1]
     ))
 
@@ -482,7 +483,7 @@ def plot_conversations_by_hour(df, mp_name, constituency):
     style_plotly_chart(
         fig=fig,
         yaxis_title=f"",
-        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> Sessions by Time of Day</span>",
+        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Local Users</span> & <span style='color: {colours[1]}'>External Users</span> Sessions by Time of Day</span>",
         chart_type=ChartTypes.BAR,
     )
 
@@ -504,7 +505,7 @@ def plot_conversations_by_length(df, mp_name, constituency):
     fig.add_trace(go.Bar(
         x=df["Session Length"],
         y=df["Outside"],
-        hovertemplate=f"<b>Other Users</b>: "+"%{y}<extra></extra>",
+        hovertemplate=f"<b>External Users</b>: "+"%{y}<extra></extra>",
         marker_color=colours[1]
     ))
 
@@ -519,7 +520,7 @@ def plot_conversations_by_length(df, mp_name, constituency):
     style_plotly_chart(
         fig=fig,
         yaxis_title=f"",
-        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> Sessions by Length of Session</span>",
+        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Local Users</span> & <span style='color: {colours[1]}'>External Users</span> Sessions by Length of Session</span>",
         chart_type=ChartTypes.BAR,
     )
 
@@ -541,7 +542,7 @@ def plot_conversations_by_messages(df, mp_name, constituency):
     fig.add_trace(go.Bar(
         x=df["Message Count Category"],
         y=df["Outside"],
-        hovertemplate=f"<b>Other Users</b>: "+"%{y}<extra></extra>",
+        hovertemplate=f"<b>External Users</b>: "+"%{y}<extra></extra>",
         marker_color=colours[1]
     ))
 
@@ -553,7 +554,7 @@ def plot_conversations_by_messages(df, mp_name, constituency):
         fig=fig,
         yaxis_title="Sessions",
         xaxis_title="Messages",
-        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> Sessions by Number of Messages</span>",
+        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Local Users</span> & <span style='color: {colours[1]}'>External Users</span> Sessions by Number of Messages</span>",
         chart_type=ChartTypes.BAR,
     )
 
@@ -577,7 +578,7 @@ def plot_sessions_by_day(df, mp_name, constituency):
     fig.add_trace(go.Scatter(
         x=df["Session Date"],
         y=df["Outside"],
-        name=f"Other Users",
+        name=f"External Users",
         marker_color=colours[1]
     ))
 
@@ -588,7 +589,7 @@ def plot_sessions_by_day(df, mp_name, constituency):
     style_plotly_chart(
         fig=fig,
         yaxis_title=f"",
-        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Constituents</span> & <span style='color: {colours[1]}'>Other Users</span> Sessions by Day of Month</span>",
+        chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Local Users</span> & <span style='color: {colours[1]}'>External Users</span> Sessions by Day of Month</span>",
         chart_type=ChartTypes.LINE,
         grouped_plot=True,
     )
@@ -597,13 +598,13 @@ def plot_sessions_by_day(df, mp_name, constituency):
 def plot_median_sentiment_by_day(df, mp_name, constituency):
     option = st.selectbox(
         "Select an audience",
-        ["Constituents", "Other Users"],
+        ["Local Users", "External Users"],
         key="Sentiment",
     )
 
     option_map = {
-        "Constituents": "Inside",
-        "Other Users": "Outside",
+        "Local Users": "Inside",
+        "External Users": "Outside",
     }
     
     fig = go.Figure()
@@ -647,13 +648,13 @@ def plot_median_sentiment_by_day(df, mp_name, constituency):
 def plot_median_stance_by_day(df, mp_name, constituency):
     option = st.selectbox(
         "Select an audience",
-        ["Constituents", "Other Users"],
+        ["Local Users", "External Users"],
         key="Stance",
     )
 
     option_map = {
-        "Constituents": "Inside",
-        "Other Users": "Outside",
+        "Local Users": "Inside",
+        "External Users": "Outside",
     }
     
     fig = go.Figure()
@@ -698,13 +699,13 @@ def plot_median_stance_by_day(df, mp_name, constituency):
 def plot_median_ideology_by_day(df, mp_name, constituency):
     option = st.selectbox(
         "Select an audience",
-        ["Constituents", "Other Users"],
+        ["Local Users", "External Users"],
         key="Ideology",
     )
 
     option_map = {
-        "Constituents": "Inside",
-        "Other Users": "Outside",
+        "Local Users": "Inside",
+        "External Users": "Outside",
     }
     
     fig = go.Figure()
@@ -749,13 +750,13 @@ def plot_median_ideology_by_day(df, mp_name, constituency):
 def plot_top_keywords_by_week(df, mp_name, constituency):
     option = st.selectbox(
         "Select an audience",
-        ["Constituents", "Other Users"],
+        ["Local Users", "External Users"],
         key="Top Keywords",
     )
 
     option_map = {
-        "Constituents": "Inside",
-        "Other Users": "Outside",
+        "Local Users": "Inside",
+        "External Users": "Outside",
     }
     
     df_selected = df[df["Constituency"] == option_map[option]]
@@ -805,13 +806,13 @@ def plot_top_keywords_by_week(df, mp_name, constituency):
 def plot_top_web_keywords_by_week(df, mp_name, constituency):
     option = st.selectbox(
         "Select an audience",
-        ["Constituents", "Other Users"],
+        ["Local Users", "External Users"],
         key="Top Web Keywords",
     )
 
     option_map = {
-        "Constituents": "Inside",
-        "Other Users": "Outside",
+        "Local Users": "Inside",
+        "External Users": "Outside",
     }
     
     df_selected = df[df["Constituency"] == option_map[option]]
@@ -951,3 +952,52 @@ def plot_top_keywords_reports_by_week(df, mp_name, constituency):
         chart_type=ChartTypes.BAR,
         footnote=f"Keywords are derived from ranked analysis of all reported AI messages for that time period."
     )
+
+
+def get_metric_sum_sessions(df, metric_title, region_type, column):
+    today = pd.Timestamp.today()
+
+    df = df[df["Constituency"] == region_type]
+    df["Session Date"] = pd.to_datetime(df["Session Date"], errors="coerce")
+    df["Week"] = df["Session Date"].dt.isocalendar().week
+
+    df_weekly = df.groupby(["Week"])[column].sum().reset_index()
+
+    current_week = df_weekly[df_weekly["Week"] == today.isocalendar().week][column].iloc[0]
+    last_week = df_weekly[df_weekly["Week"] == (today - pd.Timedelta(weeks=1)).isocalendar().week][column].iloc[0]
+    week_change = int(current_week - last_week)
+
+    st.metric(metric_title, current_week, delta=week_change, help=f"Comparison is between **current** week ({current_week}) and **previous** week ({last_week})'s values, showing a change of ({current_week} - {last_week}) = **{week_change}**")
+
+
+def _get_week_value(df, week_num, column):
+    week_row = df[df["Week"] == week_num]
+    if not week_row.empty:
+        return int(week_row[column].iloc[0].round(2) * 100)
+    else:
+        return "N/A"
+
+
+def get_metric_median_sentiment(df, metric_title, region_type, column):
+    today = pd.Timestamp.today()
+
+    df = df[df["Constituency"] == region_type]
+    df["Session Date"] = pd.to_datetime(df["Session Date"], errors="coerce")
+    df["Week"] = df["Session Date"].dt.isocalendar().week
+
+    current_week_num = today.isocalendar().week
+    last_week_num = (today - pd.Timedelta(weeks=1)).isocalendar().week
+
+    # Filtering out 0s for days where no data is present first
+    df_filtered = df[df[column] != 0]
+
+    df_weekly = df_filtered.groupby(["Week"])[column].median().reset_index()
+
+    current_week_value = _get_week_value(df_weekly, current_week_num, column)
+    current_week = f"{current_week_value}%" if type(current_week_value) == int else current_week_value
+
+    last_week_value = _get_week_value(df_weekly, last_week_num, column)
+    last_week = f"{last_week_value}%" if type(last_week_value) == int else last_week_value
+    week_change = "No data available" if last_week_value == "N/A" or current_week_value == "N/A" else f"{current_week_value - last_week_value}%"
+
+    st.metric(metric_title, f"{current_week}", delta=week_change, help=f"Comparison is between the **current** week ({current_week}) and **previous** week ({last_week})'s values, showing a change of ({current_week} - {last_week}) = **{week_change}**")

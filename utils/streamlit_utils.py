@@ -226,7 +226,7 @@ def usage_agreement_and_init_setup(mp_name):
     st.write("""
     **Conditions of usage**:
              
-    > While using Civic Sage, your prompts/messages/questions will be stored and personal information anonymised for group-wide analysis of sentiment and topics of interest. Your *individual* conversation will **NOT** be viewed. However, please do not include any private or sensitive information as part of your conversation.
+    > While using Civic Sage, both **your prompts/messages** & **location data** will be stored, personal information anonymised, then aggregated for group-wide analysis of user behaviour and interest. Your *individual* conversation will **NOT** be viewed. However, please do not include any private or sensitive information as part of your conversation.
     """)
 
     confirm = st.checkbox("**I agree to the conditions set out above while using Civic Sage.**")
@@ -352,6 +352,9 @@ def get_mp_summary_from_db(mp_name):
 
     
 def setup_mp_summary_details(mp_name, mp_summary_data):
+    # NOTE: Temporary notice for testing
+    st.info("**TESTERS:** To save your conversation for analysis, you **must** use the **:material/arrow_back: button** to exit the page due to current platform limitations. Occasionally, this may take some time to process.", icon=":material/construction:")
+
     # Structure
     col_portrait, col_content = st.columns([1, 3], gap="small")
 
@@ -370,7 +373,7 @@ def setup_mp_summary_details(mp_name, mp_summary_data):
         portrait = Image.open(st.session_state.portrait_data)
 
         new_height = portrait.height + int(portrait.height * 0.1)
-        new_image = Image.new('RGB', (portrait.width, new_height), PARTY_THEMES[mp_summary_data["Party"]])
+        new_image = Image.new("RGB", (portrait.width, new_height), PARTY_THEMES[mp_summary_data["Party"]])
         new_image.paste(portrait, (0, 0))
 
         st.image(new_image, width=150, caption=f"{mp_name} © House of Commons")

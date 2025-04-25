@@ -1,5 +1,7 @@
 import pandas as pd
+from datetime import datetime
 from io import BytesIO
+from PIL import Image, ImageDraw
 import requests
 import boto3
 from requests_aws4auth import AWS4Auth
@@ -30,7 +32,6 @@ chart_setup_functions = {
     "reported_responses_by_day": plot_utils.plot_reported_responses_by_day,
     "sensitive_messages_by_day": plot_utils.plot_sensitive_messages_by_day,
     "top_keywords_reports_by_week": plot_utils.plot_top_keywords_reports_by_week,
-
 }
 
 MPS = {
@@ -66,13 +67,102 @@ def preload_chart_data_into_session_state():
             # NOTE: For now just doing month files, so will manually remove "month" but if were adding year files would have to edit this later
 
 
+def load_mp_image_into_session_state():
+    mp_name = st.session_state["mp_selector"].split("(")[0][:-1]
+
+    print(f"Loading & cropping {mp_name} portrait into session state")
+
+    dashboard_summary_data = st_utils.get_mp_summary_from_db(mp_name)
+    portrait_response = requests.get(f"{dashboard_summary_data['Picture']}?cropType=1")
+    if portrait_response.status_code == 200:
+
+        image = Image.open(BytesIO(portrait_response.content)).convert("RGBA")
+        size = min(image.size)
+        mask = Image.new("L", (size, size), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, size, size), fill=255)
+        width, height = image.size
+        left = (width - size) // 2
+        top = (height - size) // 2
+        image_circular = image.crop((left, top, left + size, top + size))
+        image_circular.putalpha(mask)
+
+        st.session_state.portrait_data_dashboard = image_circular
+        st.session_state.portrait_data_dashboard_mp = mp_name
+
+    else:
+        st.error(f"Failed to fetch the image. HTTP Status Code: {portrait_response.status_code}")
+
+
 def chart_setup(mp_name, mp_constituency):
+    current_period = datetime.now().strftime("%b %Y")
+
     mp_data = st.session_state.chart_data[mp_name]
 
     tab_mp, tab_civic_sage = st.tabs([f":material/id_card: MP Insights", ":material/smart_toy: Civic Sage Insights"])
 
     with tab_mp:
-        st.subheader(f"Who is searching for {mp_name}?")
+        headline_cols = st.columns([1, 1, 1])
+
+        with headline_cols[2]:
+            st.info(f"""
+            **TERMINOLOGY:**
+                    
+            **Local Users** refer to sessions where the detected location is within **{mp_constituency}**.
+
+            **External Users** refer to sessions where the detected location is outside of **{mp_constituency}**.
+            """, icon=":material/article:")
+        
+        
+        with headline_cols[0]:
+            st.subheader("Number of Sessions (Week)")
+            add_vertical_space(1)
+            st.badge(f"Data: **{mp_data["sessions_by_day"]['Date']}**", color="blue", icon=":material/monitoring:")
+            sub_cols = st.columns([1, 1])
+
+            with sub_cols[0]:
+                plot_utils.get_metric_sum_sessions(
+                    df=mp_data["sessions_by_day"]["Data"],
+                    metric_title=":material/home: **Local Users**",
+                    region_type="Inside",
+                    column="Sessions",
+                )
+
+            with sub_cols[1]:
+                plot_utils.get_metric_sum_sessions(
+                    df=mp_data["sessions_by_day"]["Data"],
+                    metric_title=":material/public: **External Users**",
+                    region_type="Outside",
+                    column="Sessions",
+                )
+            
+
+        with headline_cols[1]:
+
+            st.subheader("Median Positive Sentiment (Week)")
+            add_vertical_space(1)
+            st.badge(f"Data: **{mp_data["median_sentiment_by_day"]['Date']}**", color="blue", icon=":material/monitoring:")
+            sub_cols = st.columns([1, 1])
+
+            with sub_cols[0]:
+                plot_utils.get_metric_median_sentiment(
+                    df=mp_data["median_sentiment_by_day"]["Data"],
+                    metric_title=":material/home: **Local Users**",
+                    region_type="Inside",
+                    column="Positive",
+                )
+
+            with sub_cols[1]:
+                plot_utils.get_metric_median_sentiment(
+                    df=mp_data["median_sentiment_by_day"]["Data"],
+                    metric_title=":material/public: **External Users**",
+                    region_type="Outside",
+                    column="Positive",
+                )
+
+        st.divider()
+
+        st.subheader(f"Who is searching for {mp_name}? ({current_period})")
         who_cols = st.columns([1, 1])
 
         with who_cols[0]:
@@ -84,7 +174,7 @@ def chart_setup(mp_name, mp_constituency):
 
 
         st.divider()
-        st.subheader(f"What themes are related to searches for {mp_name}?")
+        st.subheader(f"What themes are related to searches for {mp_name}? ({current_period})")
         what_searches_cols_1 = st.columns([1, 1])
         what_searches_cols_1 = st.columns([1, 1])
 
@@ -105,7 +195,7 @@ def chart_setup(mp_name, mp_constituency):
 
 
         st.divider()
-        st.subheader(f"When are people searching for {mp_name}?")
+        st.subheader(f"When are people searching for {mp_name}? ({current_period})")
         when_cols_1 = st.columns([1, 1])
         when_cols_2 = st.columns([1, 1])
 
@@ -124,7 +214,7 @@ def chart_setup(mp_name, mp_constituency):
 
 
         st.divider()
-        st.subheader(f"What are people feeling when searching for {mp_name}?")
+        st.subheader(f"What are people feeling when searching for {mp_name}? ({current_period})")
         feeling_cols_1 = st.columns([1, 1])
         feeling_cols_2 = st.columns([1, 1])
 
@@ -171,7 +261,10 @@ def run():
     with col_select_mp:
         mp_options = [f"{mp_name} ({mp_dict['Constituency']})" for mp_name, mp_dict in MPS.items()]
         
-        mp_selected = st.selectbox(":material/person: Select a MP", mp_options)
+        mp_selected = st.selectbox(":material/person: Select a MP", mp_options, on_change=load_mp_image_into_session_state, key="mp_selector")
+        
+        if "portrait_data_dashboard" not in st.session_state:
+            load_mp_image_into_session_state()
 
     with col_fetch_data:
         add_vertical_space(2)
@@ -217,10 +310,22 @@ def run():
                 mp_party = mp_dict["Party"]
                 party_colour = st_utils.PARTY_THEMES[mp_party]
 
-                st.markdown(f"""
-                <p style='line-height: 1; font-size: 34px; font-weight: bold;'>{mp_name}</p>
-                <p style='line-height: 0; font-size: 26px;'><span style='color: {party_colour};'>{mp_party}</span> MP for <b>{mp_constituency}</b></p>
-                """, unsafe_allow_html=True)
+                profile_cols = st.columns([1, 20])
+                
+                with profile_cols[0]:
+                    # NOTE: Due to way streamlit handles re-running selectable elements, need to account for changing page by sidebar, which
+                    # -retains session state (keeping old picture), but resetting other elements e.g. selectboxes
+                    if st.session_state.portrait_data_dashboard_mp != mp_name:
+                        print("RELOADING PORTRAIT, IMAGE DOES NOT MATCH CURRENT MP")
+                        load_mp_image_into_session_state()
+                        
+                    st.image(st.session_state.portrait_data_dashboard)
+                
+                with profile_cols[1]:
+                    st.markdown(f"""
+                    <p style='line-height: 1; font-size: 34px; font-weight: bold;'>{mp_name}</p>
+                    <p style='line-height: 0; font-size: 26px;'><span style='color: {party_colour};'>{mp_party}</span> MP for <b>{mp_constituency}</b></p>
+                    """, unsafe_allow_html=True)
 
                 add_vertical_space(1)
                 
@@ -238,6 +343,12 @@ def run():
 
         .stExpander {
             margin-top: -2.25rem !important;
+            margin-bottom: 0rem !important;
+            display: inline-block !important;
+        }
+
+        .stMetric {
+            margin-top: -2.5rem !important;
             margin-bottom: 0rem !important;
             display: inline-block !important;
         }

@@ -5,3 +5,4 @@ showSidebarNavigation = false
 
 [theme]
 primaryColor="#3087ff"
+base="light"

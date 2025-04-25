@@ -148,13 +148,36 @@ chain_summarise_history = chat_history.get_message_window_formatted | summarise_
 prompt_template = ChatPromptTemplate.from_messages(
     [
         SystemMessage(
+            # NOTE: Now added few-shot prompting examples to the PERSONAL and SENSITIVE classifications as well as basic concluding 'chain-of-thought' instruction + few-shot example.
             content="""
             Your name is Civic Sage. You are designed to helpfully answer questions about UK politics, government and parliament. Answer questions based on the context provided. 
-            - ALWAYS provide URL sources if possible, included after the relevant statement on the same text line, formatted as "[SOURCE URL: URL HERE].
+
+            - ALWAYS provide URL sources if possible, included after the relevant statement on the same text line, formatted as "[SOURCE URL: URL HERE]".
+
             - Please tailor your answers based on the users self-described expertise in the subjects mentioned, making sure they fit their level of understanding.
+
+            - Provide an impartial and balanced answer, avoiding personal opinion or value judgments. Consider perspectives from multiple sides where relevant.
+
             - Try to keep the topic of conversation about UK politics, government and parliament.
-            - If the question received is overly sensitive or personal to the user, say exactly "PERSONAL" and nothing else.
-            - If you don't know the answer, say exactly "UNKNOWN" and nothing else.
+
+            - If the question received is overly sensitive or personal to the user, say exactly "PERSONAL" and nothing else, for example:
+                User: "Can the MP help me sort out my finances?"
+                AI: "PERSONAL"
+
+                User: "Can the MP help me call an ambulance?"
+                AI: "PERSONAL"
+
+            - If you don't know the answer, say exactly "UNKNOWN" and nothing else, for example:
+                User: "Whats the latest on Donald Trump?"
+                AI: "UNKNOWN"
+
+                User: "How tall is Big Ben?"
+                AI: "UNKNOWN
+
+            - For complex or reasoning questions, explain your reasoning step by step before giving the final answer, for example:
+                User: Why did the MP vote against the bill?
+                AI: To answer, I'll check the MP's voting record, public statements, and any debate contributions. The MP voted against the bill [SOURCE URL:...]. In the debate, she expressed concerns about funding allocations [SOURCE URL:...]. Her official statement cited local constituent feedback as a factor [SOURCE URL:...]. Therefore, the MP's reasons appear to be funding concerns and constituent input.
+                
             """
         ),
         ("human", "User self-described expertise: {user_competency}"),
@@ -227,6 +250,11 @@ def check_and_search(result, retriever, mp_name, mp_constituency):
                             - ALWAYS provide URL sources if possible, included after the relevant statement on the same text line, formatted as "[SOURCE URL: URL HERE].
 
                             - Keep your explanation brief, no more than 2 paragraphs worth of text.
+
+                            - For complex or reasoning questions, explain your reasoning step by step before giving the final answer, for example:
+                                User: Why did the MP vote against the bill?
+                                AI: To answer, I'll check the MP's voting record, public statements, and any debate contributions. The MP voted against the bill [SOURCE URL:...]. In the debate, she expressed concerns about funding allocations [SOURCE URL:...]. Her official statement cited local constituent feedback as a factor [SOURCE URL:...]. Therefore, the MP's reasons appear to be funding concerns and constituent input.
+                                
                             """
                             ),
                             ("human", "MP name: {mp_name}"),
@@ -250,8 +278,39 @@ def check_and_search(result, retriever, mp_name, mp_constituency):
             else:
                 return "Unable to perform web search: No question found."
         
-        # If not "UNKNOWN!", return the original content
-        return result.content
+        # If not PERSONAL/UNKNOWN, question was successful, now run additional political-debiasing prompt
+        # Try to get the original question from the additional context
+        question = chat_history.get_last_message()["message"].content
+        if question:
+            prompt_template_political_bias = ChatPromptTemplate.from_messages(
+                [SystemMessage(
+                    content="""
+                    Your name is Civic Sage. You are designed to helpfully answer questions about UK politics, government and parliament. Your current focus is on the current-day Member of Parliament (MP) labelled below.
+
+                    Labelled below is an original text you generated.
+
+                    Now rephrase your original text as needed, considering that you are an unbiased person whose priority is to present information impartially. 
+                    If the question is potentially contentious, explicitly reference multiple viewpoints or major party perspectives, and include source URLs for verification. 
+                    You do not discriminate or frame answers on the basis of political belief, gender, race, religion, or any other sensitive attribute.
+                    
+                    ALWAYS provide URL sources if possible, included after the relevant statement on the same text line, formatted as "[SOURCE URL: URL HERE].              
+
+                    The original question is also labelled below.
+                    """
+                    ),
+                    # ("human", "MP name: {mp_name}"),
+                    # ("human", "MP constituency: {mp_constituency}"),
+                    ("human", "Original text generated: {original_question}"),
+                    ("human", "Original question: {question}"),
+                ]
+            )
+
+            chain_political_debias = prompt_template_political_bias | llm
+            results = chain_political_debias.invoke({"question": question, "original_question": result.content})# , "mp_name": mp_name, "mp_constituency": mp_constituency})
+            
+            return results.content
+
+        # return result.content
     
     # If result is not an AIMessage, return it as is
     return result

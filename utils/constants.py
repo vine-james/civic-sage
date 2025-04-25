@@ -1,5 +1,5 @@
 from pathlib import Path
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 import os
 from enum import Enum
 import streamlit as st
@@ -13,7 +13,7 @@ PATH_CONVERSATIONS = PATH_FILES / "conversations"
 PATH_PDFS = PATH_FILES / "pdfs"
 
 # Tokens
-# load_dotenv() # NOTE: load_dotenv() replaced with streamlit secrets as I am now deploying the app on Streamlit Community Cloud.
+load_dotenv() # NOTE: load_dotenv() replaced with streamlit secrets as I am now deploying the app on Streamlit Community Cloud.
 
 def get_secret(key, deployed=True):
     if deployed:

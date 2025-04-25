@@ -1,5 +1,5 @@
 from datetime import datetime
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage
 import time
 
 import streamlit as st
@@ -8,7 +8,6 @@ from streamlit_js_eval import get_geolocation
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 import utils.streamlit_utils as st_utils
-import utils.location_utils as location_utils
 
 st_utils.create_page_setup(page_name="Search")
 
@@ -64,7 +63,7 @@ def page_setup_search_llm():
 
         st_utils.process_chat_history()
     
-    # # # Run-time
+    # Run-time
     chat_placeholder = st.empty()
 
     # Footer
@@ -90,9 +89,7 @@ def page_setup_search_llm():
                 for i, button_col in enumerate(button_cols):
                     with button_col:
                         if st.button(f":material/search: {suggested_prompts[i]}"):
-                            with chat_placeholder:
-                                # st.chat_input usually handles adding in the user message to UI after sending. Since not using that, have to do it manually.
-                                # st_utils.send_chat_message({"role": "user", "message": HumanMessage(suggested_prompts[i]), "time": datetime.now(), "message_index": None}, speak=False)
+                            with chat_placeholder.container():
                                 st_utils.process_prompt_and_response(suggested_prompts[i], st.session_state.user, CURRENT_MP, st.session_state.mp_summary_data["Constituency"])
             
         # Dialog system - Enter a question through streamlit chatbox
@@ -102,8 +99,8 @@ def page_setup_search_llm():
 
     # If value inside chat input found, begin the question-answer behaviour
     if prompt:
-        # with chat_placeholder:
-        st_utils.process_prompt_and_response(prompt, st.session_state.user, CURRENT_MP, st.session_state.mp_summary_data["Constituency"])
+        with chat_placeholder.container():
+            st_utils.process_prompt_and_response(prompt, st.session_state.user, CURRENT_MP, st.session_state.mp_summary_data["Constituency"])
 
 
 # NOTE: Have to store it in this manner due to the way .get_geolocation() seems to need to run several times, but may error if not handled correctly.

@@ -376,7 +376,7 @@ def save_raw_data_db(mp_name, mp_id, mp_data):
 
 def store_mp_data(mp_name, mp_id, mp_data):
 
-    # # Store MP data in it's python form to Amazon DynamoDB
+    # Store MP data in it's python form to Amazon DynamoDB
     # save_raw_data_db(mp_name, mp_id, mp_data)
     
     # Change every entry of bool 'false' / 'true' to str "No" / "Yes"
