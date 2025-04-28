@@ -187,7 +187,7 @@ prompt_template = ChatPromptTemplate.from_messages(
     ]
 )
 
-qa_chain = prompt_template | llm
+# qa_chain = prompt_template | llm
 
 
 def summarize_history(input_):

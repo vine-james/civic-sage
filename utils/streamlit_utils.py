@@ -226,7 +226,7 @@ def usage_agreement_and_init_setup(mp_name):
     st.write("""
     **Conditions of usage**:
              
-    > While using Civic Sage, both **your prompts/messages** & **location data** will be stored, personal information anonymised, then aggregated for group-wide analysis of user behaviour and interest. Your *individual* conversation will **NOT** be viewed. However, please do not include any private or sensitive information as part of your conversation.
+    > While using Civic Sage, both **your :material/chat: prompts/messages** & :material/pin_drop: **location data** will be stored, personal information anonymised, then aggregated for group-wide analysis of user behaviour and interest. Your *individual* conversation will **NOT** be viewed. However, please do not include any private or sensitive information as part of your conversation.
     """)
 
     confirm = st.checkbox("**I agree to the conditions set out above while using Civic Sage.**")
