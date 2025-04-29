@@ -1,5 +1,6 @@
 import requests
 import utils.constants as constants
+import re
 
 from streamlit_js_eval import get_geolocation
 
@@ -64,6 +65,14 @@ def get_mp_by_constituency(session_state):
         
 
 def get_mp_by_postcode(postcode):
+    pattern = r"^([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})$"
+    is_postcode = re.fullmatch(pattern, postcode.strip().upper()) is not None
+    # Credit to https://stackoverflow.com/questions/164979/regex-for-matching-uk-postcodes
+
+    if not is_postcode:
+        print("Input does not match postcode format!")
+        return "Input does not match postcode format", None, None
+
     response_mp_postcode = requests.get(f"https://www.theyworkforyou.com/api/getMP?key={constants.TOKEN_THEYWORKFORYOU}&postcode={postcode}&output=json")
 
     try:
@@ -72,7 +81,7 @@ def get_mp_by_postcode(postcode):
             mp = data["full_name"]
             constituency = data["constituency"]
 
-            return constituency, mp
+            return "Success", constituency, mp
 
     except Exception as e:
         print(f"Error getting postcode: {e}")

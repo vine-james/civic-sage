@@ -3,7 +3,7 @@ Feature: Chat history tracking
   I want my messages to be correctly stored in the chat history
   So that conversation context is preserved.
 
-  Scenario: Prompt appears as the last user history message
+  Scenario: Prompt returns as chat class last user message
     Given I have created a chat history of size 5
     And I have set the prompt to "What is the weather today?"
     And I have set the user as "test_user"
