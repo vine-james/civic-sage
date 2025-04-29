@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 from enum import Enum
 import streamlit as st
-
+import platform
 
 # Paths
 CWD = Path.cwd()
@@ -13,9 +13,10 @@ PATH_CONVERSATIONS = PATH_FILES / "conversations"
 PATH_PDFS = PATH_FILES / "pdfs"
 
 # Tokens
-load_dotenv() # NOTE: load_dotenv() replaced with streamlit secrets as I am now deploying the app on Streamlit Community Cloud.
+load_dotenv() # NOTE: load_dotenv() secrets have been replaced with streamlit secrets as I am now deploying the app on Streamlit Community Cloud.
+IS_DEPLOYED = platform.processor() == ""
 
-def get_secret(key, deployed=True):
+def get_secret(key, deployed=IS_DEPLOYED):
     if deployed:
         return st.secrets[key]
     else:

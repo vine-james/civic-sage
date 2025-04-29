@@ -4,10 +4,10 @@ import time
 
 import streamlit as st
 from streamlit_extras.bottom_container import bottom 
-from streamlit_js_eval import get_geolocation
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 import utils.streamlit_utils as st_utils
+import utils.location_utils as location_utils
 
 st_utils.create_page_setup(page_name="Search")
 
@@ -36,8 +36,11 @@ def page_setup_search_llm():
     CURRENT_MP = st.session_state.current_mp
 
     # ChatHistory and User through st.session_state through the usage agreement
-    # User
-    # st.session_state.user
+    if "location" not in st.session_state:
+        print("Running Location Setup")
+        latitude, longitude = location_utils.get_location_by_streamlit()
+        st.session_state.location = (latitude, longitude)
+
     if "usage_agreement" not in st.session_state:
         st_utils.usage_agreement_and_init_setup(CURRENT_MP)
 
@@ -90,6 +93,7 @@ def page_setup_search_llm():
                     with button_col:
                         if st.button(f":material/search: {suggested_prompts[i]}"):
                             with chat_placeholder.container():
+                                time.sleep(.1)
                                 st_utils.process_prompt_and_response(suggested_prompts[i], st.session_state.user, CURRENT_MP, st.session_state.mp_summary_data["Constituency"])
             
         # Dialog system - Enter a question through streamlit chatbox
@@ -100,19 +104,8 @@ def page_setup_search_llm():
     # If value inside chat input found, begin the question-answer behaviour
     if prompt:
         with chat_placeholder.container():
+            time.sleep(.1)
             st_utils.process_prompt_and_response(prompt, st.session_state.user, CURRENT_MP, st.session_state.mp_summary_data["Constituency"])
-
-
-# NOTE: Have to store it in this manner due to the way .get_geolocation() seems to need to run several times, but may error if not handled correctly.
-if "location" not in st.session_state:
-    # NOTE: Stored here as has to be executed once at beginning of run-time.
-    time.sleep(0.5)
-    st.session_state.location = get_geolocation()
-    
-if "location" in st.session_state:
-    if st.session_state.location == None:
-        time.sleep(0.5)
-        st.session_state.location = get_geolocation()
 
 
 # FIRST SET-UP
@@ -122,6 +115,7 @@ if "current_page_function" not in st.session_state:
     # For handling who is the current MP being searched
     st.session_state.current_mp = None
 
+
 # Determine which section to show based on set session state of current_page_function
 if st.session_state.current_page_function == PAGE_SETUP_FIND_MP:
     page_setup_find_mp()
@@ -130,7 +124,7 @@ if st.session_state.current_page_function == PAGE_SETUP_FIND_MP:
         st.session_state.search_option = None
 
     if st.session_state.search_option == "Location":
-        st_utils.query_location(st.session_state)
+        st_utils.query_location()
 
     if st.session_state.search_option == "Manual":
         st_utils.query_manually()
