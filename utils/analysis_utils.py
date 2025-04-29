@@ -2,7 +2,6 @@ from datetime import datetime
 import textstat
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
-from transformers import pipeline
 
 import utils.location_utils as location_utils
 import utils.boto_utils as boto_utils
@@ -11,42 +10,44 @@ analyzer = AnalyzerEngine()
 anonymizer = AnonymizerEngine()
 conversation_table = boto_utils.dynamodb_init("conversations")
 
+import streamlit as st
 
-def zero_shot_classify(text, classifier_name, candidate_labels):
+# @st.cache_resource
+@st.cache_resource
+def load_classifier():
+    from transformers import pipeline
+    return pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=-1)
+
+def zero_shot_classify(text, classifier, candidate_labels):
     # Classify specific candidate labels according to the message & specific classifier for specific context
-    classifier = pipeline("zero-shot-classification", model=classifier_name, device=-1)
     result = classifier(text, candidate_labels)
 
     return result["scores"]
 
 
-def get_ideology(messages):
+def get_ideology(messages, classifier):
     ideological_labels = ["Far-left", "Center-left", "Centrist", "Center-right", "Far-right"]
     ideological_hypotheses_labels = [f"This message expresses politically {label} values within UK politics" for label in ideological_labels]
 
-    classifier_ideological = "facebook/bart-large-mnli"
-
-    message_scores = [zero_shot_classify(message, classifier_name=classifier_ideological, candidate_labels=ideological_hypotheses_labels) for message in messages]
+    message_scores = [zero_shot_classify(message, classifier, candidate_labels=ideological_hypotheses_labels) for message in messages]
 
     return message_scores
 
 
-def get_stance(messages):
+def get_stance(messages, classifier):
     stance_labels = ["Supportive", "Neutral", "Oppositional"]
-    classifier_stance = "facebook/bart-large-mnli"
     stance_hypotheses_labels = [f"This message expresses a {label} stance" for label in stance_labels]
 
-    message_scores = [zero_shot_classify(message, classifier_name=classifier_stance, candidate_labels=stance_hypotheses_labels) for message in messages]
+    message_scores = [zero_shot_classify(message, classifier, candidate_labels=stance_hypotheses_labels) for message in messages]
 
     return message_scores
 
 
-def get_sentiment(messages):
+def get_sentiment(messages, classifier):
     sentiment_labels = ["Positivity", "Neutrality", "Negativity"]
-    classifier_sentiment = "facebook/bart-large-mnli"
     sentiment_hypotheses_labels = [f"This message expresses {label}" for label in sentiment_labels]
 
-    message_scores = [zero_shot_classify(message, classifier_name=classifier_sentiment, candidate_labels=sentiment_hypotheses_labels) for message in messages]
+    message_scores = [zero_shot_classify(message, classifier, candidate_labels=sentiment_hypotheses_labels) for message in messages]
     
     return message_scores
 
@@ -75,11 +76,13 @@ def anonymize_text(text, mp_name):
     return anonymized.text
 
 
+
 def analyse_chat(session_state):
     user_messages = session_state.chat_history.get_author_messages("Human")
 
     # Skip if no messages
     if not user_messages:
+        print("No user messages, skipping analysis")
         return None
     
     mp_name = session_state.current_mp
@@ -90,9 +93,12 @@ def analyse_chat(session_state):
     ai_messages = session_state.chat_history.get_author_messages("Assistant")
     ai_messages_anonymised = [anonymize_text(message.content, mp_name) for message in ai_messages]
 
-
     # 2. Analyse
-    user_ward, _, user_constituency, user_ward_code, user_constituency_code = location_utils.get_location_details(session_state["location"]["coords"]["longitude"], session_state["location"]["coords"]["latitude"])
+    classifier = load_classifier()
+
+    user_ward, user_constituency, user_ward_code, user_constituency_code = "Location unavailable", "Location unavailable", "Location unavailable", "Location unavailable"
+    if session_state["location"][0] and session_state["location"][1]:
+        _, user_ward, _, user_constituency, user_ward_code, user_constituency_code = location_utils.get_location_details(session_state["location"][1], session_state["location"][0])
 
     websearch_messages_anonymised = [message for message in ai_messages_anonymised if "WEB SEARCH:" in message]
     sensitive_messages_anonymised = [message for message in ai_messages_anonymised if "SENSITIVE REPLY: " in message]
@@ -128,9 +134,9 @@ def analyse_chat(session_state):
         "Number of Sensitive Messages": len(sensitive_messages_anonymised),
 
         "User FRE Scores": get_complexity(user_messages_anonymised),
-        "User Sentiment Scores": get_sentiment(user_messages_anonymised),
-        "User Stance Scores": get_stance(user_messages_anonymised),
-        "User Ideology Scores": get_ideology(user_messages_anonymised),
+        "User Sentiment Scores": get_sentiment(user_messages_anonymised, classifier),
+        "User Stance Scores": get_stance(user_messages_anonymised, classifier),
+        "User Ideology Scores": get_ideology(user_messages_anonymised, classifier),
 
         "User Competency Scores": {name: session_state.user.get_numerical_score(value) for name, value in session_state.user.competencies.items()},
 

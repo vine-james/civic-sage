@@ -548,6 +548,10 @@ def plot_conversations_by_messages(df, mp_name, constituency):
 
     fig.update_layout(
         barmode="stack",
+        xaxis=dict(
+            categoryorder="array",
+            categoryarray=["1-5", "6-10", "11-19", "20+"],
+        ),
     )
 
     style_plotly_chart(
@@ -557,8 +561,6 @@ def plot_conversations_by_messages(df, mp_name, constituency):
         chart_title=f"<span style='font-size: 18px'>Total <span style='color: {colours[0]};'>Local Users</span> & <span style='color: {colours[1]}'>External Users</span> Sessions by Number of Messages</span>",
         chart_type=ChartTypes.BAR,
     )
-
-
 
 
 def plot_sessions_by_day(df, mp_name, constituency):
@@ -693,7 +695,6 @@ def plot_median_stance_by_day(df, mp_name, constituency):
         chart_type=ChartTypes.LINE,
         grouped_plot=True,
     )
-
 
 
 def plot_median_ideology_by_day(df, mp_name, constituency):

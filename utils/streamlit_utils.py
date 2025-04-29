@@ -1,4 +1,3 @@
-
 import pandas as pd
 import requests
 import re
@@ -11,7 +10,6 @@ from langchain_core.messages import HumanMessage, AIMessage
 
 import streamlit as st
 from streamlit_searchbox import st_searchbox
-from streamlit_theme import st_theme
 
 import utils.constants as constants
 
@@ -33,9 +31,13 @@ PARTY_THEMES = {
     "Liberal Democrats": "#FDBB30",
 }
 
+# Search section
+full_ids = ["Paul Holmes (Hamble Valley)", "Jessica Toale (Bournemouth West)", "Tom Hayes (Bournemouth East)"]
+mps = [id.split("(")[0][:-1] for id in full_ids]
+constituencies = [id.split("(")[1][:-1] for id in full_ids]
+
 # Instantiate table here - may need to amend this later
 message_reports_table = boto_utils.dynamodb_init("message-reports")
-
 
 
 def get_version():
@@ -252,7 +254,6 @@ def usage_agreement_and_init_setup(mp_name):
 
         st.session_state.session_start = datetime.now()
 
-        # Finally, re-run the app to get rid of the screen
         st.rerun()
 
 
@@ -350,6 +351,18 @@ def get_mp_summary_from_db(mp_name):
 
     return mp_summary_data
 
+
+def handle_mp_cleanup():
+    with st.spinner("Saving conversation analysis..."):
+        analysis_utils.analyse_chat(st.session_state)
+        st.session_state["current_page_function"] = "Find an MP"
+        del st.session_state.current_mp
+        del st.session_state.mp_summary_data
+        del st.session_state.portrait_data
+        del st.session_state.mp_keywords
+        del st.session_state.usage_agreement
+        del st.session_state.location
+
     
 def setup_mp_summary_details(mp_name, mp_summary_data):
     # NOTE: Temporary notice for testing
@@ -397,18 +410,8 @@ def setup_mp_summary_details(mp_name, mp_summary_data):
             
         # Back button to return to finding an MP
         with col_button:
-             if st.button("", icon=":material/arrow_back:"):
-                # Check that any chat history exists
-                if len(st.session_state.chat_history.all_messages) > 0:
-                    analysis_utils.analyse_chat(st.session_state)
-                del st.session_state.current_mp
-                del st.session_state.mp_summary_data
-                del st.session_state.portrait_data
-                del st.session_state.mp_keywords
-                del st.session_state.usage_agreement
-                st.session_state.current_page_function = "Find an MP"
-                st.rerun()
-
+            st.button("", icon=":material/arrow_back:", on_click=handle_mp_cleanup)
+          
 
         with st.expander(f"Find {mp_name} online", icon=":material/share:"):
             contact_types = ["Website", "Facebook", "X (formerly Twitter)"]
@@ -590,12 +593,6 @@ def process_chat_history():
         elif isinstance(chat_message_dict["message"], AIMessage):
             send_chat_message({"role": "ai", "message": chat_message_dict["message"], "time": chat_message_dict["time"],  "message_index": chat_message_dict["message_index"]})
 
- 
-# SEARCH SECTION FUNCTIONS 
-full_ids = ["Paul Holmes (Hamble Valley)", "Jessica Toale (Bournemouth West)", "Tom Hayes (Bournemouth East)"]
-mps = [id.split("(")[0][:-1] for id in full_ids]
-constituencies = [id.split("(")[1][:-1] for id in full_ids]
-
 
 def go_to_mp_query(mp_name):
     st.session_state.current_mp = mp_name
@@ -616,12 +613,19 @@ def check_constituency(searched_constituency, mp_name):
             go_to_mp_query(mp_name)
         
 
-def query_location(session_state):
-    admin_ward, postcode, constituency, mp_name = location_utils.get_mp_by_constituency(session_state)
+def query_location():
+    latitude, longitude = location_utils.get_location_by_streamlit()
+    st.session_state.location = (latitude, longitude)
+    with st.spinner("Attempting location check..."):
+        time.sleep(0.5) # Need a temporary wait otherwise streamlit automatically flags as error for 1-2 seconds before refresh.
+        flag, admin_ward, postcode, constituency, mp_name = location_utils.get_mp_by_constituency(st.session_state)
 
-    st.write(f"Based off your approximate location of **{admin_ward}, {postcode}** we think your constituency is **{constituency}**, which is represented by **{mp_name}**.")
-    check_constituency(constituency, mp_name)
+        if flag == "Success":
+            st.write(f"Based off your approximate location of **{admin_ward}, {postcode}** we think your constituency is **{constituency}**, which is represented by **{mp_name}**.")
+            check_constituency(constituency, mp_name)
 
+        else:
+            st.warning("Unfortunately we were unable to determine your location.\n\n**If you are currently within the UK:** Please verify that your browser permits location sharing with this website and then refresh the page.\n\n**If you are outside of the UK:** Please select the 'Search for an MP manually' option.", icon=":material/error:")
 
 def query_manually():
     tab_search_postcode, tab_search_mp = st.tabs(["Search by Postcode", "Search by Name or Constituency"])
