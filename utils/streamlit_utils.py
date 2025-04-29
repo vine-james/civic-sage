@@ -340,7 +340,6 @@ def get_mp_continuous_serving_period(mp_elections):
             if election["Result"] == "Lost election":
                 return "The MP is not currently serving in any constituency."
             
-
     return current_start_date.strftime("%d/%m/%Y")
 
 
@@ -349,7 +348,12 @@ def get_mp_summary_from_db(mp_name):
     boto_table = boto_utils.dynamodb_init("summaries")
     mp_summary_data = boto_utils.dynamodb_fetch_record(boto_table, "mp_name", mp_name)
 
-    return mp_summary_data
+    if mp_summary_data:
+        return mp_summary_data
+
+    else:
+        print(f"No MP summary for {mp_name} found!")
+        return "No MP summary found"
 
 
 def handle_mp_cleanup():
@@ -636,22 +640,17 @@ def query_manually():
         # NOTE: This set of code has to be done this way, instead of using check_constituency.
         # There seems to be behaviour where functions within 2+ levels of if-statement Streamlit buttons will not execute. This is my work-around.
         if st.button("Search Postcode"):
+            flag, constituency, mp = location_utils.get_mp_by_postcode(postcode)
 
-            pattern = r"^([A-Za-z][A-Ha-hJ-Yj-y]?[0-9][A-Za-z0-9]? ?[0-9][A-Za-z]{2}|[Gg][Ii][Rr] ?0[Aa]{2})$"
-            is_postcode = re.fullmatch(pattern, postcode.strip().upper()) is not None
-            # Credit to https://stackoverflow.com/questions/164979/regex-for-matching-uk-postcodes
-            if is_postcode:
-                constituency, mp = location_utils.get_mp_by_postcode(postcode)
-
+            if flag == "Input does not match postcode format":
+                st.warning(f"**{postcode}** does not seem to match the [expected format for UK postcodes](https://ideal-postcodes.co.uk/guides/uk-postcode-format). Please check your input and try again.\n\nPlease contact the Civic Sage developers if you believe this is an error.")
+            else:
                 st.write(f"The MP representing **{postcode.upper()} ({constituency})** is **{mp}**.")
 
                 if constituency not in constituencies:
                     st.warning("Unfortunately your constituency is not covered within the current Civic Sage database as part of this testing phase.\n\nWe recommend selecting an available Member of Parliament through the 'Search for an MP manually' -> 'Search by Name or Constituency' workflow. We apologise for the inconvenience.", icon=":material/error:")
                 else:
                     st.button(f"View {mp}", icon=":material/search:", on_click=go_to_mp_query, args=(mp, ))
-
-            else:
-                st.warning(f"**{postcode}** does not seem to match the [expected format for UK postcodes](https://ideal-postcodes.co.uk/guides/uk-postcode-format). Please check your input and try again.\n\nPlease contact the Civic Sage developers if you believe this is an error.")
 
 
     with tab_search_mp:
