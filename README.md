@@ -27,11 +27,11 @@ This product was created in partial completion of my Bournemouth University BSc 
 > 1. Installed (e.g. `pip install -r requirements.txt`) the required dependencies into (and activated) a virtual environment.
 > 2. Provisioned your own copies of the necessary infastructure (and thus, their subsequent secrets/tokens) into a `.env` file. Consult [constants.py](utils/constants.py) to determine required items.
 
-- `streamlit run streamlit_app.py` will spin up a local version of the application.
-
-- `pytest` or `pytest -v` will run the associated unit tests.
-
-- `python -m files.meta_evaluation.evaluation` will run the associated 'intelligent' LLM-driven tests.
+| Command | Description |
+| --- | --- |
+| `streamlit run streamlit_app.py` | Run a local version of Civic Sage. |
+| `pytest` or `pytest -v` | Run Civic Sage's unit tests. |
+| `python -m files.meta_evaluation.evaluation` | Run Civic Sage's 'intelligent' LLM-driven tests. |
 
 
 
