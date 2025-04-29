@@ -7,7 +7,7 @@ import geopandas as gpd
 import pandas as pd
 
 palettes = {
-    "sequential": ["#fee0d2", "#fcae91", "#fb6a4a", "#cb181d", "#67000d"],
+    "sequential": ["#edf8e9", "#bae4b3", "#74c476", "#31a354", "#006d2c"],
     "categorical": ["#2171b5", "#E07941", "#8456ce", "#c33d69", "#6BAE13", "#096f64"],
     "pos-neu-neg": ["#2ecc71", "#7f8c8d", "#e74c3c"],
     "highlight": ["#d7191c"],
@@ -228,7 +228,7 @@ def update_fig_style(fig, chart_title, footnote, chart_type, yaxis_title, xaxis_
             margin=dict(t=55),
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            # mapbox_style="white-bg",
+            mapbox_style="carto-positron",
         )
 
     elif chart_type == ChartTypes.SCATTER:
@@ -353,7 +353,7 @@ def plot_sessions_by_ward(df, mp_name, constituency):
         current_i += i_scale
 
     palette_scale.insert(0, [0, "black"])
-    palette_scale[-1][0] = 1
+    palette_scale[-1][0] = 1.0
 
     fig = go.Figure(go.Choroplethmapbox(
             geojson=gdf_merged.__geo_interface__, 
@@ -368,7 +368,6 @@ def plot_sessions_by_ward(df, mp_name, constituency):
         ))
 
     fig.update_layout(
-        mapbox_style="carto-positron",
         mapbox_zoom=10.1,
         mapbox_center={"lat": gdf_merged.geometry.centroid.y.mean(),
                    "lon": gdf_merged.geometry.centroid.x.mean()},
@@ -408,7 +407,7 @@ def plot_political_knowledge_by_ward(df, mp_name, constituency):
     gdf_merged = gdf_merged.to_crs(epsg=4326)
 
 
-    colour_palette = get_colour_palette(palette_type="sequential")
+    colour_palette = get_colour_palette(palette_type="sequential", num_colours=4)
     i_scale = 1 / len(colour_palette)
     current_i = 0.0000000001
     palette_scale = []
@@ -436,7 +435,6 @@ def plot_political_knowledge_by_ward(df, mp_name, constituency):
         ))
 
     fig.update_layout(
-        mapbox_style="carto-positron",
         mapbox_zoom=10.1,
         mapbox_center={"lat": gdf_merged.geometry.centroid.y.mean(),
                    "lon": gdf_merged.geometry.centroid.x.mean()},
