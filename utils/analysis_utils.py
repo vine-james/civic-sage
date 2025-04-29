@@ -18,6 +18,7 @@ def load_classifier():
     from transformers import pipeline
     return pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=-1)
 
+
 def zero_shot_classify(text, classifier, candidate_labels):
     # Classify specific candidate labels according to the message & specific classifier for specific context
     result = classifier(text, candidate_labels)
