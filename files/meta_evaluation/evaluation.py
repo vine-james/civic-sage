@@ -41,7 +41,7 @@ TESTS = [
                     - Shadow Minister in the Northern Ireland Office (19/07/2024 - 06/11/2024)
                     - Opposition Whip in the Whips Office (19/07/2024 - Current)
                 """,
-                q="What are their opposition roles?",
+                q="What are all the roles they have held while part of the opposition?",
             ),
             TestCase(
                 subject="Latest Election Details",
@@ -71,7 +71,6 @@ TESTS = [
         ]
     ),
 
-
     TestSuite_MP(
         name="Jessica Toale",
         constituency="Bournemouth West",
@@ -97,7 +96,7 @@ TESTS = [
                     Jessica Toale has held the following roles as part of the Opposition:
                     - None
                 """,
-                q="What are their opposition roles?",
+                q="What are all of their opposition roles?",
             ),
             TestCase(
                 subject="Latest Election Details",
@@ -133,7 +132,6 @@ TESTS = [
         ],
     ),
 
-
     TestSuite_MP(
         name="Tom Hayes",
         constituency="Bournemouth East",
@@ -159,7 +157,7 @@ TESTS = [
                     Paul Holmes has held the following roles as part of the Opposition:
                     - None
                 """,
-                q="What are their opposition roles?",
+                q="What are all of their opposition roles?",
             ),
             TestCase(
                 subject="Latest Election Details",
@@ -269,7 +267,8 @@ def evaluate_test_case_cycle(mp_name, mp_constituency, user, question, test_case
 
     if evaluated_output.content.strip() == "SATISFACTORY":
         print(f"[{mp_name}]: {test_case.subject.upper()} passed! {len(test_logs['Questions'])} prompt turns.")
-        return f"Passed ({len(test_logs['Questions'])} / {MAX_TEST_ATTEMPTS})"
+        # return f"Passed ({len(test_logs['Questions'])} / {MAX_TEST_ATTEMPTS})"
+        return "Passed"
 
     else:
         if len(test_logs["Questions"]) >= MAX_TEST_ATTEMPTS:
@@ -277,10 +276,13 @@ def evaluate_test_case_cycle(mp_name, mp_constituency, user, question, test_case
             return "Failed"
 
         print(f"[{mp_name}]: {test_case.subject.upper()} failed! Current attempt: {len(test_logs['Questions'])}")
-        evaluate_test_case_cycle(mp_name, mp_constituency, user, evaluated_output.content, test_case, test_logs)
+        return evaluate_test_case_cycle(mp_name, mp_constituency, user, evaluated_output.content, test_case, test_logs)
 
+
+test_results = {"Passed": [], "Failed": []}
 
 for mp_test_suite in TESTS:
+
     print(f"----------\n[!] Running all tests for {mp_test_suite.name}")
 
     for test_case in mp_test_suite.tests:
@@ -292,4 +294,12 @@ for mp_test_suite in TESTS:
             "Civic Sage Responses": [],
         }
 
-        evaluate_test_case_cycle(mp_test_suite.name, mp_test_suite.constituency, preset_user, test_case.q, test_case, logs_current_test)
+        flag = evaluate_test_case_cycle(mp_test_suite.name, mp_test_suite.constituency, preset_user, test_case.q, test_case, logs_current_test)
+        test_results[flag].append(f"{test_case.subject} ({mp_test_suite.name})")
+        
+
+num_tests_passed, num_tests_failed, all_tests_failed, num_total_tests = len(test_results["Passed"]), len(test_results["Failed"]), test_results["Failed"], (len(test_results["Passed"]) + len(test_results["Failed"]))
+print(f"\n\n--------------------\n[SUMMARY]:\n - Tests PASSED: {num_tests_passed}/{num_total_tests}")
+print(f" - Tests FAILED: {num_tests_failed}/{num_total_tests}\n{test_results["Failed"]}" if test_results["Failed"] else f" - Tests FAILED: {num_tests_failed}/{num_total_tests}")
+        
+print("\n[CAVEATS]:\n - These intelligent tests are based on retrieving factual information from Civic Sage and rely on statically inputted information (correct as of April 2025).\n - It is possible that some MPs information (e.g. roles) may have changed since then, potentially causing tests to fail.")
