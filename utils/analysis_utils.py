@@ -5,6 +5,7 @@ from presidio_anonymizer import AnonymizerEngine
 
 import utils.location_utils as location_utils
 import utils.boto_utils as boto_utils
+import utils.constants as constants
 
 analyzer = AnalyzerEngine()
 anonymizer = AnonymizerEngine()
@@ -15,15 +16,24 @@ import streamlit as st
 # @st.cache_resource
 @st.cache_resource
 def load_classifier():
-    from transformers import pipeline
-    return pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=-1)
+    from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
+    model_path = constants.PATH_MODELS / "MoritzLaurerDeBERTa-v3-large-mnli-fever-anli-ling-wanli"
+
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    model = AutoModelForSequenceClassification.from_pretrained(model_path)
+
+    return pipeline("zero-shot-classification", model=model, tokenizer=tokenizer, device=-1)
 
 
 def zero_shot_classify(text, classifier, candidate_labels):
     # Classify specific candidate labels according to the message & specific classifier for specific context
     result = classifier(text, candidate_labels)
+    label_score_dict = dict(zip(result["labels"], result["scores"]))
+   
+    # Reordering scores according to their candidate label input order (for later correct processing in Lambda)
+    scores_reordered = [label_score_dict[label] for label in candidate_labels]
 
-    return result["scores"]
+    return scores_reordered
 
 
 def get_ideology(messages, classifier):

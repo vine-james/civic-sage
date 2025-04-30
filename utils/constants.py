@@ -11,6 +11,7 @@ PATH_FILES = CWD / "files"
 PATH_IMAGES = PATH_FILES / "images"
 PATH_CONVERSATIONS = PATH_FILES / "conversations"
 PATH_PDFS = PATH_FILES / "pdfs"
+PATH_MODELS = PATH_FILES / "models"
 
 # Tokens
 load_dotenv() # NOTE: load_dotenv() secrets have been replaced with streamlit secrets as I am now deploying the app on Streamlit Community Cloud.
