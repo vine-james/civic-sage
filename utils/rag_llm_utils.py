@@ -180,14 +180,13 @@ prompt_template = ChatPromptTemplate.from_messages(
                 
             """
         ),
+        ("human", "Todays date: {date}"),
         ("human", "User self-described expertise: {user_competency}"),
         ("human", "Chat history summary: {history}"),
         ("human", "Context: {context}"),
         ("human", "{question}"),
     ]
 )
-
-# qa_chain = prompt_template | llm
 
 
 def summarize_history(input_):
@@ -204,11 +203,10 @@ def summarize_history(input_):
 
 def format_docs(docs):
     docs_done = "\n\n".join(f"---\nSource: {doc.metadata['data_source']}\n{doc.page_content}" for doc in docs)
-    # print("Documents: ", docs_done)
     return docs_done
 
 
-def check_and_search(result, retriever, mp_name, mp_constituency):
+def check_and_search(result, retriever, mp_name, mp_constituency, date):
     # If result is an AIMessage, extract its content and the original question
     if hasattr(result, "content"):
         # If results are too personal, re-direct.
@@ -257,14 +255,16 @@ def check_and_search(result, retriever, mp_name, mp_constituency):
                                 
                             """
                             ),
+                            ("human", "Todays date: {date}"),
                             ("human", "MP name: {mp_name}"),
                             ("human", "MP constituency: {mp_constituency}"),
                             ("human", "Original question: {question}"),
+                            
                         ]
                     )
 
                     chain_web_search = prompt_template_search | llm_with_tools
-                    search_results = chain_web_search.invoke({"question": question, "mp_name": mp_name, "mp_constituency": mp_constituency})
+                    search_results = chain_web_search.invoke({"question": question, "mp_name": mp_name, "mp_constituency": mp_constituency, "date": date})
 
                     # Check if the LLM actually performed a web search or just answered it by-itself and classify accordingly 
                     # (some responses are UNKNOWN) but don't require a web search
@@ -298,19 +298,17 @@ def check_and_search(result, retriever, mp_name, mp_constituency):
                     The original question is also labelled below.
                     """
                     ),
-                    # ("human", "MP name: {mp_name}"),
-                    # ("human", "MP constituency: {mp_constituency}"),
+                    ("human", "Todays date: {date}"),
                     ("human", "Original text generated: {original_question}"),
                     ("human", "Original question: {question}"),
                 ]
             )
 
             chain_political_debias = prompt_template_political_bias | llm
-            results = chain_political_debias.invoke({"question": question, "original_question": result.content})# , "mp_name": mp_name, "mp_constituency": mp_constituency})
+            results = chain_political_debias.invoke({"question": question, "original_question": result.content, "date": date})
             
             return results.content
-
-        # return result.content
+        
     
     # If result is not an AIMessage, return it as is
     return result
@@ -349,6 +347,8 @@ def ask_prompt(question, user, mp_name, mp_constituency):
         text_key="data",
     )
 
+    date_today = str(datetime.today())
+
     combined_chain = (
         RunnableLambda(safely_add_message)
         | RunnablePassthrough.assign(
@@ -359,11 +359,11 @@ def ask_prompt(question, user, mp_name, mp_constituency):
         )
         | prompt_template
         | llm
-        | RunnableLambda(partial(check_and_search, retriever=retriever, mp_name=mp_name, mp_constituency=mp_constituency))
+        | RunnableLambda(partial(check_and_search, retriever=retriever, mp_name=mp_name, mp_constituency=mp_constituency, date=date_today))
         | RunnableLambda(safely_add_message)
     )
 
-    result = combined_chain.invoke({"question": question, "user_competency": user.get_competencies_plaintext()})
+    result = combined_chain.invoke({"question": question, "user_competency": user.get_competencies_plaintext(), "date": date_today})
 
     # This is not optimal but fastest way at current moment
     message_index = chat_history.get_last_message()["message_index"]
