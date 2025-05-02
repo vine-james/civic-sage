@@ -94,24 +94,6 @@ def clean_value_types(data):
         return data
 
 
-def flatten_json(data, prefix=""):
-    flattened = {}
-
-    for key, value in data.items():
-        new_key = f"{prefix}{key}" if prefix else key
-
-        if isinstance(value, dict):
-            flattened.update(flatten_json(value, prefix=new_key + ": "))
-
-        elif isinstance(value, list):
-            flattened[new_key] = ", ".join(map(str, value))
-
-        else:
-            flattened[new_key] = value
-
-    return flattened
-
-
 def batch_upsert_data(records, mp_name):
     batches = []
     batch_size = 100
@@ -433,56 +415,6 @@ def send_api_request(url):
 
 
 mp_daily_update_table = boto_utils.dynamodb_init("mp-daily-update-records")
-# def get_latest_records_identifiers(api, mp_name):
-#     mp_latest_records = boto_utils.dynamodb_fetch_record(mp_daily_update_table, "mp_name", mp_name)
-
-#    return mp
-
-
-
-
-
-
-def store_latest_record_identifier(data_record):
-    # Store the latest record in DB table mp-daily-update-records so daily updater knows when to stop pulling records
-
-    """
-    {
-        "mp_name": mp_name,
-        "{id}/Edms?": 1,
-        "{id}/ContributionSummary?": 1,
-        "{id}/Voting?house=1&": 1,
-        "{id}/WrittenQuestions?": 1,
-    }
-
-    edms    {"items": [{"value": {"id"}}, ...]}         id
-    contr   {"items": [{"value": {"debateId"}}, ...]}   debateId
-    votes   {"items": [{"value": {"id"}}, ...]}         id
-    wrqu    {"items": [{"value": {"uin"}}, ...]}        uin    
-
-    edms
-        {
-            items [
-                {
-                    value:
-                        {
-                            id
-                        }
-                }
-            ]
-        }
-
-    
-    #
-    https://members.parliament.uk/member/{id}/earlydaymotions
-    https://members.parliament.uk/member/{id}/contributions
-    https://members.parliament.uk/member/{id}/voting
-    https://members.parliament.uk/member/{id}/writtenquestions
-
-    """
-
-    boto_utils.dynamodb_upload_record(data=data_record, table=mp_daily_update_table)
-
 
 
 # Manually get the member IDs
@@ -525,7 +457,6 @@ def collect_mp_data(mps_to_query):
 
                 if page_data["items"]:
                     # First checking if any records exist
-                    # search_latest_record_identifier = page_data["items"][0]["value"][api_dict["latest_record_field"]]
                     search_latest_record_identifier = int(page_data["items"][0]["value"][api_dict["latest_record_field"]])
                     mp_new_latest_records_dict[api_dict["path"]] = search_latest_record_identifier
                 else:
@@ -547,15 +478,9 @@ def collect_mp_data(mps_to_query):
                     if (database_latest_record_identifier == int(item["value"][api_dict["latest_record_field"]])):
                         print(f"[{member_dict["Name"]}]: Found latest record in first page, ({i}) {api_dict["path"]} -- {database_latest_record_identifier} == {int(item["value"][api_dict["latest_record_field"]])}")
                         skip_current_loop = True
-
                         break
                     
-                    # breakpoint()
-                    # if "items" not in data:
-                    #     data["items"]
-                    # print(f"Appending item {item}")
                     first_page_entry["items"].append(item)
-                    # breakpoint()
                 
                 # Need to add this flag so that if we found a record in the first page, skip the current loop and move onto next API rather than now storing every record for additional pages
                 if skip_current_loop:
@@ -572,7 +497,6 @@ def collect_mp_data(mps_to_query):
                     print(f"[{member_dict["Name"]}]: Requesting {api_url}page={counter}")
                     
                     for i, item in enumerate(page_data["items"]):
-                        # breakpoint()
                         if (database_latest_record_identifier == int(item["value"][api_dict["latest_record_field"]])):
                             print(f"[{member_dict["Name"]}]: Found latest record in page {counter}, ({i}) {api_dict["path"]} -- {database_latest_record_identifier} == {search_latest_record_identifier}")
                             continue
@@ -585,7 +509,6 @@ def collect_mp_data(mps_to_query):
             else:
                 data = send_api_request(api_url)
 
-            # breakpoint()
             mp_data_source_parliament[name] = api_dict["function"](member_dict["ID"], data)
             time.sleep(0.1)
 
@@ -596,10 +519,8 @@ def collect_mp_data(mps_to_query):
             boto_utils.dynamodb_upload_record(data=mp_new_latest_records_dict, table=mp_daily_update_table)
             
             mp_data["Parliament"] = mp_data_source_parliament
-
-            # breakpoint()
-
             store_mp_data(member_dict["Name"], member_dict["ID"], mp_data)
+
         else:
             print(f"[{member_dict["Name"]}]: No new data found, ending!")
 

@@ -94,24 +94,6 @@ def clean_value_types(data):
         return data
 
 
-def flatten_json(data, prefix=""):
-    flattened = {}
-
-    for key, value in data.items():
-        new_key = f"{prefix}{key}" if prefix else key
-
-        if isinstance(value, dict):
-            flattened.update(flatten_json(value, prefix=new_key + ": "))
-
-        elif isinstance(value, list):
-            flattened[new_key] = ", ".join(map(str, value))
-
-        else:
-            flattened[new_key] = value
-
-    return flattened
-
-
 def batch_upsert_data(records, mp_name):
     batches = []
     batch_size = 100
