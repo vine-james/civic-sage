@@ -365,6 +365,13 @@ def plot_sessions_by_ward(df, mp_name, constituency):
             text=gdf_merged["Ward"],
             hovertemplate="<b>Ward</b>: %{text}<br>%{z}<extra></extra>",
             colorscale=palette_scale,
+            zmin=0,
+            zmax=max(gdf_merged["Sessions"]) if max(gdf_merged["Sessions"]) > 0 else 1,
+            colorbar={
+                "tickmode": "linear",
+                "tick0": 0,
+                "dtick": 1,
+            },
         ))
 
     fig.update_layout(
@@ -432,6 +439,11 @@ def plot_political_knowledge_by_ward(df, mp_name, constituency):
             colorscale=palette_scale,
             zmin=0,
             zmax=4,
+            colorbar={
+                "tickmode": "linear",
+                "tick0": 0,
+                "dtick": 1,
+            },
         ))
 
     fig.update_layout(
@@ -962,8 +974,21 @@ def get_metric_sum_sessions(df, metric_title, region_type, column):
 
     df_weekly = df.groupby(["Week"])[column].sum().reset_index()
 
-    current_week = df_weekly[df_weekly["Week"] == today.isocalendar().week][column].iloc[0]
-    last_week = df_weekly[df_weekly["Week"] == (today - pd.Timedelta(weeks=1)).isocalendar().week][column].iloc[0]
+    current_week = df_weekly[df_weekly["Week"] == today.isocalendar().week][column]
+    if not current_week.empty:
+        current_week = current_week.iloc[0]
+    else:
+        current_week = 0 
+
+
+
+    last_week = df_weekly[df_weekly["Week"] == (today - pd.Timedelta(weeks=1)).isocalendar().week][column]
+    if not last_week.empty:
+        last_week = last_week.iloc[0]
+    else:
+        last_week = 0 
+
+
     week_change = int(current_week - last_week)
 
     st.metric(metric_title, current_week, delta=week_change, help=f"Comparison is between **current** week ({current_week}) and **previous** week ({last_week})'s values, showing a change of ({current_week} - {last_week}) = **{week_change}**")
