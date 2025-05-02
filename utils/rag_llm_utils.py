@@ -299,13 +299,14 @@ def check_and_search(result, retriever, mp_name, mp_constituency, date):
                     """
                     ),
                     ("human", "Todays date: {date}"),
+                    ("human", "MP name: {mp_name}"),
                     ("human", "Original text generated: {original_question}"),
                     ("human", "Original question: {question}"),
                 ]
             )
 
             chain_political_debias = prompt_template_political_bias | llm
-            results = chain_political_debias.invoke({"question": question, "original_question": result.content, "date": date})
+            results = chain_political_debias.invoke({"question": question, "original_question": result.content, "mp_name": mp_name, "date": date})
             
             return results.content
         
