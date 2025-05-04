@@ -12,7 +12,7 @@ from datetime import datetime
 
 import utils.constants as constants
 
-index_name = "mp-data"
+index_name = "mp-records"
 pc = Pinecone(api_key=constants.TOKEN_PINECONE)
 
 if index_name not in pc.list_indexes().names():
@@ -27,7 +27,7 @@ if index_name not in pc.list_indexes().names():
 
 dense_index = pc.Index(index_name)
 
-embeddings = OpenAIEmbeddings(model="text-embedding-ada-002", api_key=constants.TOKEN_OPENAI)
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small", api_key=constants.TOKEN_OPENAI)
 
 llm = ChatOpenAI(
     model="gpt-4o-mini",
@@ -206,7 +206,7 @@ def format_docs(docs):
     return docs_done
 
 
-def check_and_search(result, retriever, mp_name, mp_constituency, date):
+def check_and_search(result, retriever, mp_name, mp_constituency, date, user):
     # If result is an AIMessage, extract its content and the original question
     if hasattr(result, "content"):
         # If results are too personal, re-direct.
@@ -258,13 +258,14 @@ def check_and_search(result, retriever, mp_name, mp_constituency, date):
                             ("human", "Todays date: {date}"),
                             ("human", "MP name: {mp_name}"),
                             ("human", "MP constituency: {mp_constituency}"),
+                            ("human", "User self-described expertise: {user_competency}"),
                             ("human", "Original question: {question}"),
                             
                         ]
                     )
 
                     chain_web_search = prompt_template_search | llm_with_tools
-                    search_results = chain_web_search.invoke({"question": question, "mp_name": mp_name, "mp_constituency": mp_constituency, "date": date})
+                    search_results = chain_web_search.invoke({"question": question, "mp_name": mp_name, "mp_constituency": mp_constituency, "date": date, "user_competency": user.get_competencies_plaintext()})
 
                     # Check if the LLM actually performed a web search or just answered it by-itself and classify accordingly 
                     # (some responses are UNKNOWN) but don't require a web search
@@ -300,13 +301,13 @@ def check_and_search(result, retriever, mp_name, mp_constituency, date):
                     ),
                     ("human", "Todays date: {date}"),
                     ("human", "MP name: {mp_name}"),
-                    ("human", "Original text generated: {original_question}"),
+                    ("human", "Original text generated: {original_response}"),
                     ("human", "Original question: {question}"),
                 ]
             )
 
             chain_political_debias = prompt_template_political_bias | llm
-            results = chain_political_debias.invoke({"question": question, "original_question": result.content, "mp_name": mp_name, "date": date})
+            results = chain_political_debias.invoke({"question": question, "original_response": result.content, "mp_name": mp_name, "date": date})
             
             return results.content
         
@@ -360,7 +361,7 @@ def ask_prompt(question, user, mp_name, mp_constituency):
         )
         | prompt_template
         | llm
-        | RunnableLambda(partial(check_and_search, retriever=retriever, mp_name=mp_name, mp_constituency=mp_constituency, date=date_today))
+        | RunnableLambda(partial(check_and_search, retriever=retriever, mp_name=mp_name, mp_constituency=mp_constituency, date=date_today, user=user))
         | RunnableLambda(safely_add_message)
     )
 

@@ -7,15 +7,15 @@ from pinecone import Pinecone, ServerlessSpec
 from dotenv import load_dotenv
 import os
 import hashlib
-import boto_utils
+import utils.boto_utils as boto_utils
 
 load_dotenv()
 
 client_openai = OpenAI(api_key=os.getenv("OPENAI"))
-index_name = "mp-data"
+index_name = "mp-records"
 
 # Connect to the Pinecone index
-pc = Pinecone(api_key=os.getenv("PINECONE"))
+pc = Pinecone(api_key=os.getenv("PINECONE_TOKEN"))
 
 if index_name not in pc.list_indexes().names():
     pc.create_index(
@@ -32,7 +32,7 @@ dense_index = pc.Index(index_name)
 
 def get_embedding(text):
     response = client_openai.embeddings.create(
-        model="text-embedding-ada-002",
+        model="text-embedding-3-small",
         input=text,
     )
 
