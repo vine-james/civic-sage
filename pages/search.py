@@ -18,7 +18,10 @@ PAGE_SETUP_SEARCH_LLM = "Search LLM"
 
 # Minimal required page setup behaviour for the 'Find an MP' segment
 def page_setup_find_mp():
-    _, col_location, col_search, _ = st.columns([1, 1, 1, 1])
+    st.title(":material/search: Search for an MP")
+    st.write("To select an MP, use one of the buttons below.")
+
+    col_location, col_search, _, _ = st.columns([1, 1, 1, 1])
     st.divider()
 
     with col_location:

@@ -9,6 +9,7 @@ st_utils.create_page_setup(page_name="Home")
 st.image(constants.PATH_IMAGES / "civic-sage-banner.png")
 
 
+st.subheader(":material/arrow_circle_right: Get Started", divider="grey")
 columns = st.columns([1, 1, 2])
 with columns[0]:
     if st.button(":material/search: Search for an MP"):
@@ -17,8 +18,6 @@ with columns[0]:
 with columns[1]:
     if st.button(":material/view_kanban: View Dashboard"):
         st.switch_page("pages/dashboard.py")
-
-add_vertical_space(2)
 
 st.markdown(
     "<link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css' rel='stylesheet'>",
