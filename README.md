@@ -13,7 +13,7 @@
 
 Additionally, Civic Sage analyses anonymised conversations at scale, generating group-level insights into user engagement per specific MP — aspiring to helping both citizens and representatives connect better online.
 
-This product was created in partial completion of my Bournemouth University BSc Dissertation.
+This product was created in partial completion of my [Bournemouth University BSc Dissertation](files/thesis/Civic%20Sage%20Dissertation.pdf).
 
 >[!NOTE]
 > To view Civic Sage deployed, please visit the [Civic Sage website](https://civicsage.streamlit.app/).
