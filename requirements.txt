@@ -121,7 +121,7 @@ pydantic==2.11.3
 pydantic_core==2.33.1
 pydeck==0.9.1
 Pygments==2.19.1
-pymdown-extensions==10.14.3
+pymdown-extensions==10.16.1
 pyogrio==0.10.0
 pyparsing==3.2.3
 pyphen==0.17.2
