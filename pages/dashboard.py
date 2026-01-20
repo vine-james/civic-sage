@@ -116,8 +116,8 @@ def chart_setup(mp_name, mp_constituency):
         
         with headline_cols[0]:
             st.subheader("Number of Sessions (Week)")
-            add_vertical_space(1)
             st.badge(f"Data: **{mp_data["sessions_by_day"]['Date']}**", color="blue", icon=":material/monitoring:")
+            add_vertical_space(2)
             sub_cols = st.columns([1, 1])
 
             with sub_cols[0]:
@@ -138,10 +138,9 @@ def chart_setup(mp_name, mp_constituency):
             
 
         with headline_cols[1]:
-
             st.subheader("Median Positive Sentiment (Week)")
-            add_vertical_space(1)
             st.badge(f"Data: **{mp_data["median_sentiment_by_day"]['Date']}**", color="blue", icon=":material/monitoring:")
+            add_vertical_space(2)
             sub_cols = st.columns([1, 1])
 
             with sub_cols[0]:
@@ -185,7 +184,7 @@ def chart_setup(mp_name, mp_constituency):
 
         with what_searches_cols_1[1]:
             create_chart(mp_name, mp_constituency, "top_web_keywords_by_week", mp_data)
-
+            add_vertical_space(2)
             with st.expander("Caveats", icon=":material/error:"):
                 st.write("""
                 - 'AI websearch responses' are Civic Sage's replies to user prompts where it could retrieve no relevant database information, thus requiring it to search the internet.
