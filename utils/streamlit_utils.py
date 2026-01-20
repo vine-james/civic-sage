@@ -405,7 +405,7 @@ def setup_mp_summary_details(mp_name, mp_summary_data):
 
             st.markdown(
                 f"<p style='line-height: 0.8; font-size: 16px;'>{get_mp_continuous_serving_period(mp_summary_data['Elections'])} - Current</p>",
-                help="This date range reflects the period of only their **current** constituency. They may have served as an MP prior in a different constituency. If unsure, view their political career history.",
+                # help="This date range reflects the period of only their **current** constituency. They may have served as an MP prior in a different constituency. If unsure, view their political career history.",
                 unsafe_allow_html=True
             )
 
