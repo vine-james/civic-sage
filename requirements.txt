@@ -94,7 +94,7 @@ presidio_analyzer==2.2.360
 presidio_anonymizer==2.2.360
 prometheus_client==0.21.1
 propcache==0.4.1
-protobuf==5.29.3
+protobuf==5.29.6
 pyarrow==19.0.0
 pycparser==2.23
 pydantic==2.12.5
